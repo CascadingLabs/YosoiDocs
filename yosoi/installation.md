@@ -53,9 +53,9 @@ Yes. `pip install yosoi` works fine. The docs use `uv` because it is faster and 
 </details>
 
 <details>
-<summary>Do I need all five API keys?</summary>
+<summary>Do I need all of these API keys?</summary>
 
-No. One is enough. Yosoi will use whichever key it finds. If multiple keys are present, set `YOSOI_MODEL` to specify which provider and model to use (e.g. `groq:llama-3.3-70b-versatile`).
+No. One is enough. Yosoi supports [25+ providers](/reference/helpers/) -- these five are just the most common. If multiple keys are present, set `YOSOI_MODEL` to specify which provider and model to use (e.g. `groq:llama-3.3-70b-versatile`).
 
 </details>
 

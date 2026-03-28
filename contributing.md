@@ -23,6 +23,7 @@ uv run pre-commit run --all-files
 |------|---------|---------|
 | **Ruff** | Linting & Formatting | `uv run ruff check .` |
 | **Mypy** | Type Checking | `uv run mypy .` |
+| **Pytest** | Testing | `uv run pytest` |
 | **Pre-commit** | Git Hooks | `uv run pre-commit run --all-files` |
 
 ## Commit Guidelines

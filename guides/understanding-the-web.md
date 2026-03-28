@@ -47,7 +47,7 @@ Bypassing L4 protections is outside Yosoi's scope. Anti-captcha APIs and residen
 
 ## QScrape
 
-[QScrape](https://qscrape.dev) is a purpose-built evaluation suite of fictional websites across the three difficulty levels above. Use it to:
+[QScrape](https://qscrape.dev) is a purpose-built evaluation suite of fictional websites covering L1 through L3. Use it to:
 
 - Validate that Yosoi's selector discovery works correctly for a given site type
 - Regression-test your pipelines against a stable, unchanging source

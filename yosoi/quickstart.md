@@ -34,10 +34,11 @@ Yosoi fetches the page, asks the LLM to identify selectors, validates them, and 
 | `--model`, `-m` | LLM model in `provider:model` format (e.g. `groq:llama-3.3-70b-versatile`) |
 | `--contract`, `-C` | Contract schema (built-in name or `path:Class`) |
 | `--file`, `-f` | File containing URLs (one per line, or JSON) |
-| `--output`, `-o` | Output format: `json`, `csv`, `md`, `jsonl`, `xlsx`, `parquet` |
+| `--output`, `-o` | Output format: `json`, `csv`, `md`, `jsonl`, `ndjson`, `xlsx`, `parquet` |
 | `--workers`, `-w` | Number of concurrent workers for batch processing |
 | `--force`, `-F` | Force re-discovery even if selectors exist |
 | `--debug`, `-d` | Save extracted HTML to `.yosoi/debug_html/` |
+| `--selector-level`, `-x` | Max selector strategy: `css`, `xpath`, `regex`, `jsonld`, `all` (default: `css`) |
 
 ## Option 2: Python script
 
@@ -75,7 +76,7 @@ Check that your API key is valid and that the target URL is publicly accessible.
 <details>
 <summary>How do I force re-discovery for a domain I have already cached?</summary>
 
-Delete the corresponding file from `.yosoi/selectors/` and run again. Yosoi will treat the domain as new and run discovery from scratch.
+Pass `--force` (or `-F`) to the CLI, or set `force=True` on the `Pipeline` constructor. You can also delete the corresponding file from `.yosoi/selectors/` and run again.
 
 </details>
 

@@ -19,7 +19,7 @@ If you want to follow progress on a specific feature, the GitHub issue is the mo
 
 A node-based pipeline architecture that would let Yosoi drive a real browser (Playwright [△](#ref-1)) to fetch and render JavaScript-heavy pages. L2 sites (SPAs, framework-rendered apps) would no longer require you to run Playwright yourself before passing HTML in.
 
-The idea is to create a new class of selector that can capture DOM assertions, actions, and arrangements (A3) without needing an bulky LLM to drive.
+The idea is to create a new class of selector that can capture DOM assertions, actions, and arrangements (A3) without needing a bulky LLM to drive.
 
 Proposed node types:
 - DOM fetcher: launches a browser, waits for network idle, captures the rendered DOM

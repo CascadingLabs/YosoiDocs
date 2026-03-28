@@ -12,7 +12,11 @@ description: Environment variables and runtime options.
 | `OPENAI_KEY` | One of these | OpenAI [◑](#ref-3) API key |
 | `CEREBRAS_KEY` | One of these | Cerebras [◇](#ref-4) API key |
 | `OPENROUTER_KEY` | One of these | OpenRouter [★](#ref-5) API key |
+| `YOSOI_MODEL` | Optional | Default model in `provider:model` format (e.g. `groq:llama-3.3-70b-versatile`) |
+| `YOSOI_LOG_LEVEL` | Optional | Logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `ALL` (default: `DEBUG`) |
 | `LOGFIRE_TOKEN` | Optional | Enables Logfire [⬡](#ref-6) tracing |
+
+These are the most commonly used provider keys. Yosoi supports [25+ providers](/reference/helpers/) -- each with its own environment variable. You only need one.
 
 ## Local storage
 
@@ -24,6 +28,7 @@ Yosoi stores all state in `.yosoi/` in your project root (gitignored by default)
   logs/          # Run logs (run_YYYYMMDD_HHMMSS.log)
   debug_html/    # Extracted HTML snapshots (--debug only)
   content/       # Extracted output files (JSON, CSV, etc.)
+  stats.json     # Cumulative LLM call and usage statistics
 ```
 
 ## Observability
@@ -35,7 +40,7 @@ Set `LOGFIRE_TOKEN` to send traces to [Logfire](https://logfire.pydantic.dev) fo
 <details>
 <summary>What happens if I set multiple provider keys?</summary>
 
-Yosoi picks one automatically. To control which provider and model are used, set `YOSOI_MODEL` to a `provider:model` string (e.g. `groq:llama-3.3-70b-versatile`).
+Yosoi picks one based on a built-in fallback order (Groq, Gemini, Cerebras, OpenAI, OpenRouter). To control which provider and model are used, set `YOSOI_MODEL` to a `provider:model` string (e.g. `groq:llama-3.3-70b-versatile`).
 
 </details>
 

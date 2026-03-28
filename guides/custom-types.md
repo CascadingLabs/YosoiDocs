@@ -12,9 +12,9 @@ One function, zero boilerplate. The decorator registers the coerce logic and rep
 ```python
 import re
 from typing import Any
-from yosoi.types.registry import register_coercion
+import yosoi as ys
 
-@register_coercion('phone', description='A phone number', country_code='+1')
+@ys.register_coercion('phone', description='A phone number', country_code='+1')
 def PhoneNumber(v: object, config: dict[str, Any], source_url: str | None = None) -> str:
     """Strip formatting and prepend a country code."""
     raw = str(v).strip()
