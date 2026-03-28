@@ -73,7 +73,7 @@ It analyzes the page HTML for repeating structural patterns. If the same element
 <details>
 <summary>What if some items are missing fields?</summary>
 
-Missing fields return `None` by default. Mark a field as `Optional[T]` in your contract to make this explicit and avoid validation errors.
+Missing fields return `None` by default. Annotate the field as `T | None` in your contract to make this explicit and avoid validation errors.
 
 </details>
 

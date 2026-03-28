@@ -129,7 +129,7 @@ The `selectors/` subdirectory is safe and useful to share across a team. The `lo
 <details>
 <summary>What happens if all three selector slots fail?</summary>
 
-Yosoi returns `None` for that field. If the field is required in your contract, a `ValidationError` is raised. Mark optional fields as `Optional[T]` to handle this gracefully.
+Yosoi returns `None` for that field. If the field is required in your contract, a `ValidationError` is raised. Annotate optional fields as `T | None` to handle this gracefully.
 
 </details>
 
