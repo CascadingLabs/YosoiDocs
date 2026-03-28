@@ -96,7 +96,7 @@ Most web scraping tools make you choose between cost and reliability. LLM-per-re
 
 **Async native.** The scraping pipeline is built on `asyncio` [○](#ref-2) from the ground up. `scrape()` is an async generator; `process_urls()` is fully non-blocking.
 
-**Concurrent background workers.** `Pipeline.process_urls()` distributes work across a configurable worker pool. Discovery and extraction can run in parallel.
+**Concurrent background workers.** `Pipeline.process_urls()` dispatches URLs as independent tasks via a TaskIQ<sup>[◑](#ref-3)</sup> in-memory broker, distributing work across a configurable worker pool. Discovery and extraction can run in parallel with no external queue required.
 
 ## How It Works
 
@@ -157,3 +157,5 @@ Results are generally consistent across providers. Models with larger context wi
 <a id="ref-1"></a>△ **Pydantic**. Pydantic Services Inc. *Data validation library for Python.* https://docs.pydantic.dev/
 
 <a id="ref-2"></a>○ **asyncio**. Python Software Foundation. *Asynchronous I/O framework in the Python standard library.* https://docs.python.org/3/library/asyncio.html
+
+<a id="ref-3"></a>◑ **TaskIQ**. TaskIQ Contributors. *Distributed task queue for Python with asyncio support, used internally as the broker for concurrent URL processing.* https://taskiq-python.github.io/

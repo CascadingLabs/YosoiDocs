@@ -137,7 +137,7 @@ At the start of each scrape, Yosoi fetches the page and tests each cached select
 <details>
 <summary>Is the .yosoi/ directory safe to commit?</summary>
 
-The `selectors/` subdirectory is safe and useful to share across a team. The `logs/`, `debug_html/`, and `content/` directories are noisy and should stay gitignored.
+The `selectors/` subdirectory is safe and can be useful to share across a team in a `.gitinclude`. The `logs/`, `debug_html/`, and `content/` and other directories are noisy and should stay gitignored.
 
 </details>
 
@@ -149,9 +149,9 @@ Yosoi returns `None` for that field. If the field is required in your contract, 
 </details>
 
 <details>
-<summary>Can I edit the cache files by hand?</summary>
+<summary>Can I edit the cache files by manually?</summary>
 
-Yes. Set `source` to `"override"` to signal the edit was intentional. Yosoi will use your selector and treat it like a pinned value.
+Yes. Optionally, set `source` to `"override"` to signal the edit was intentional. Yosoi will use your selector and treat it like a pinned value.
 
 </details>
 

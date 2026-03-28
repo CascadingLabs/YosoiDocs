@@ -44,6 +44,7 @@ asyncio.run(main())
 
 ## Notes
 
+- When `workers > 1`, Yosoi dispatches each URL as an independent task via a TaskIQ<sup>[◑](#ref-3)</sup> in-memory broker. Workers run as concurrent asyncio<sup>[○](#ref-2)</sup> tasks inside the same event loop — no separate processes or external queue required.
 - Selector discovery (the one-time LLM call) is also parallelised across workers.
 - Cached domains skip discovery entirely; only extraction runs.
 - `workers=1` (the default) runs sequentially with no progress table.
@@ -83,3 +84,5 @@ Not built-in. After `process_urls()` returns, pass `results["failed"]` back into
 <a id="ref-1"></a>△ **Rich**. Will McGugan. *Python library for rich text and progress displays in the terminal.* https://rich.readthedocs.io/
 
 <a id="ref-2"></a>○ **asyncio**. Python Software Foundation. *Asynchronous I/O framework in the Python standard library.* https://docs.python.org/3/library/asyncio.html
+
+<a id="ref-3"></a>◑ **TaskIQ**. TaskIQ Contributors. *Distributed task queue for Python with asyncio support, used internally as the broker for concurrent URL processing.* https://taskiq-python.github.io/
