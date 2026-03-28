@@ -3,9 +3,9 @@ title: Custom Types
 description: Extend Yosoi with your own semantic field types.
 ---
 
-When built-in types don't cover your domain, register a custom type. Once registered, it works exactly like a built-in — the AI sees it in the manifest, and the coercion runs automatically during extraction.
+When built-in types don't cover your domain, register a custom type. Once registered, it works exactly like a built-in: the AI sees it in the manifest, and the coercion runs automatically during extraction.
 
-## Pattern 1 — `@register_coercion` (preferred)
+## Pattern 1: `@register_coercion` (preferred)
 
 One function, zero boilerplate. The decorator registers the coerce logic and replaces the name with a `Field` factory.
 
@@ -38,7 +38,7 @@ us_phone: str = PhoneNumber()
 uk_phone: str = PhoneNumber(country_code='+44')
 ```
 
-## Pattern 2 — `YosoiType` subclass
+## Pattern 2: `YosoiType` subclass
 
 Useful when you prefer OOP or want to group the coerce logic and field factory under one name.
 
@@ -95,3 +95,33 @@ class ContactPage(ys.Contract):
 ```
 
 Custom types appear in `Contract.generate_manifest()`, so the AI knows about them during selector discovery.
+
+## FAQs
+
+<details>
+<summary>Which pattern should I use?</summary>
+
+Use `@register_coercion` for most cases. It is less code and works well for simple coercions. Use `YosoiType` when you need multiple related configurations or want to organise the type as a standalone class.
+
+</details>
+
+<details>
+<summary>Can custom types be used with list[T]?</summary>
+
+Yes. Custom coercions run element-by-element on list fields, the same as built-in types.
+
+</details>
+
+<details>
+<summary>How do I debug a coercion failure?</summary>
+
+Raise a `ValueError` with a descriptive message inside your coerce function. Pydantic will surface it as a `ValidationError` with field context. Run with `--debug` to inspect the raw extracted values before coercion.
+
+</details>
+
+<details>
+<summary>Do I need to register a YosoiType subclass explicitly?</summary>
+
+No. Subclassing `YosoiType` registers the type automatically. Just import the class before running discovery.
+
+</details>

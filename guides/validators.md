@@ -7,14 +7,14 @@ Yosoi offers two layers of field-level validation: built-in type coercions that 
 
 ## Built-in coercions
 
-Field types like `ys.Price()`, `ys.Title()`, and `ys.Author()` coerce raw strings automatically — no `@field_validator` needed.
+Field types like `ys.Price()`, `ys.Title()`, and `ys.Author()` coerce raw strings automatically -- no `@field_validator` needed.
 
 ```python
 import yosoi as ys
 
 class Product(ys.Contract):
     title: str = ys.Title()
-    price: float = ys.Price(hint='Book price — always includes £ symbol')
+    price: float = ys.Price(hint='Book price, always includes £ symbol')
     rating: str = ys.Rating(hint="Star rating written as a word e.g. 'Three'")
 ```
 
@@ -29,7 +29,7 @@ result = Product.model_validate(raw)
 
 ## Validators inner class
 
-For custom per-field transforms, define static methods inside a `Validators` class. They run before Pydantic's own validation — no decorator ceremony required.
+For custom per-field transforms, define static methods inside a `Validators` class. They run before Pydantic's own validation -- no decorator ceremony required.
 
 ```python
 class BookStore(ys.Contract):
@@ -63,3 +63,33 @@ result = BookStore.model_validate(raw)
 ```
 
 Each method name must match the field name it transforms. Methods that don't match any field are silently ignored.
+
+## FAQs
+
+<details>
+<summary>Can I raise an error inside a Validators method?</summary>
+
+Yes. Raise a standard `ValueError` and Pydantic will wrap it into a `ValidationError` as usual.
+
+</details>
+
+<details>
+<summary>Do validators run on list[T] fields element-by-element?</summary>
+
+No. The validator receives the full list as its argument. If you need per-element processing, iterate inside the method.
+
+</details>
+
+<details>
+<summary>Can I use async validators?</summary>
+
+No. `Validators` methods must be synchronous static methods. For async post-processing, handle it after `model_validate()` returns.
+
+</details>
+
+<details>
+<summary>What is the execution order?</summary>
+
+`Validators` methods run first, then built-in type coercions, then Pydantic's own validation. This means your custom transforms see the raw extracted string before any coercion has been applied.
+
+</details>

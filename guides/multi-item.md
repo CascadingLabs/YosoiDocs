@@ -3,7 +3,7 @@ title: Multi-Item Extraction
 description: Extract multiple items from listing and catalog pages.
 ---
 
-Yosoi handles pages where a selector matches many elements — product cards, article lists, search results — by detecting a repeating container and yielding one item per match.
+Yosoi handles pages where a selector matches many elements -- product cards, article lists, search results -- by detecting a repeating container and yielding one item per match.
 
 ## Auto-discovery
 
@@ -41,7 +41,7 @@ class Product(ys.Contract):
 
 ## Single-item pages
 
-`scrape()` works the same way on detail pages — it just yields one item. No special handling needed.
+`scrape()` works the same way on detail pages; it just yields one item. No special handling needed.
 
 ```python
 class BookDetail(ys.Contract):
@@ -60,3 +60,33 @@ Pass `output_format='json'` to persist results. Multi-item pages are saved as `{
 ```python
 pipeline = ys.Pipeline(config, contract=Product, output_format='json')
 ```
+
+## FAQs
+
+<details>
+<summary>How does the AI determine the container selector?</summary>
+
+It analyzes the page HTML for repeating structural patterns. If the same element type appears multiple times with consistent child structure, it is treated as the container. Providing a `hint` on your fields improves accuracy.
+
+</details>
+
+<details>
+<summary>What if some items are missing fields?</summary>
+
+Missing fields return `None` by default. Mark a field as `Optional[T]` in your contract to make this explicit and avoid validation errors.
+
+</details>
+
+<details>
+<summary>Can I scrape both a listing page and its detail pages in one pass?</summary>
+
+Not directly in a single `scrape()` call. The typical pattern is to extract URLs from the listing page, then call `scrape()` again for each detail URL.
+
+</details>
+
+<details>
+<summary>What if the AI picks the wrong container and I get one giant item instead of many?</summary>
+
+Pin the container with `root = ys.css('your.selector')` as shown above. Use `--debug` to inspect the extracted HTML and identify the correct selector.
+
+</details>

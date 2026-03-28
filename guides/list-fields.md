@@ -3,9 +3,9 @@ title: List Fields
 description: Extract multiple values per field using list[T] in your contract.
 ---
 
-Declare a field as `list[T]` when a page contains several values for the same slot — tags, prices, categories, authors. Yosoi handles two common DOM patterns automatically.
+Declare a field as `list[T]` when a page contains several values for the same slot -- tags, prices, categories, authors. Yosoi handles two common DOM patterns automatically.
 
-## Pattern A — separate elements
+## Pattern A: separate elements
 
 One selector, multiple matching nodes. The extractor collects the text from each match.
 
@@ -28,7 +28,7 @@ class Quote(ys.Contract):
 
 The AI discovers `a.tag` and the extractor returns all matched texts as a list.
 
-## Pattern B — delimited string
+## Pattern B: delimited string
 
 One selector, one node with a comma/semicolon-separated value. Yosoi splits it automatically.
 
@@ -83,3 +83,33 @@ If the AI discovers the wrapper element instead of the individual items, pin the
 ```python
 tags: list[str] = ys.Field(description='Topic tags', selector='a.tag')
 ```
+
+## FAQs
+
+<details>
+<summary>Can I use list[int] or list[float]?</summary>
+
+Yes. Type coercions apply per element, so `list[float]` with `ys.Price()` strips currency symbols from each value before converting to float.
+
+</details>
+
+<details>
+<summary>What if the delimiter varies across items on the same page?</summary>
+
+Use a regex delimiter that covers both cases. For example, `delimiter=r'\s*[,;]\s*'` handles both commas and semicolons. If the variation is too unpredictable, a custom `Validators` method gives you full control.
+
+</details>
+
+<details>
+<summary>What if the AI discovers the wrong selector for a list field?</summary>
+
+Pin it with `selector='a.tag'` on the field. This bypasses discovery for that field while letting the AI handle the rest.
+
+</details>
+
+<details>
+<summary>What is returned if no elements match?</summary>
+
+An empty list `[]`. If you need to treat an empty list as a validation error, add a validator that checks the length.
+
+</details>

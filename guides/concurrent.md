@@ -3,7 +3,7 @@ title: Concurrent Scraping
 description: Process multiple URLs in parallel with the Pipeline.
 ---
 
-`Pipeline.process_urls()` accepts a list of URLs and a `workers` argument. When `workers > 1`, a Rich Live progress table appears automatically — no extra setup required.
+`Pipeline.process_urls()` accepts a list of URLs and a `workers` argument. When `workers > 1`, a Rich Live progress table appears automatically -- no extra setup required.
 
 ## Basic usage
 
@@ -44,5 +44,35 @@ asyncio.run(main())
 ## Notes
 
 - Selector discovery (the one-time LLM call) is also parallelised across workers.
-- Cached domains skip discovery entirely — only extraction runs.
+- Cached domains skip discovery entirely; only extraction runs.
 - `workers=1` (the default) runs sequentially with no progress table.
+
+## FAQs
+
+<details>
+<summary>How many workers should I use?</summary>
+
+Start with 3 to 5. Higher counts can trigger rate limiting from both the target site and your LLM provider. The right number depends on your provider's rate limits and the target site's tolerance.
+
+</details>
+
+<details>
+<summary>What happens if one URL fails?</summary>
+
+It is added to the `failed` list and the rest continue. Exceptions are caught per-URL and do not abort the batch.
+
+</details>
+
+<details>
+<summary>Does concurrency affect selector discovery?</summary>
+
+Yes, in a good way. If multiple URLs share a domain that has not been discovered yet, one worker runs discovery while the others wait. Once cached, all workers use the result.
+
+</details>
+
+<details>
+<summary>Can I retry failed URLs automatically?</summary>
+
+Not built-in. After `process_urls()` returns, pass `results["failed"]` back into another `process_urls()` call to retry.
+
+</details>
