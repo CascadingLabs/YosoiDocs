@@ -58,7 +58,7 @@ Run it:
 uv run python concurrent.py
 ```
 
-## What to expect
+## What to Expect
 
 - With `workers=3`, all three URLs are processed simultaneously.
 - A Rich Live progress table shows real-time status for each URL.

@@ -5,7 +5,7 @@ description: How Yosoi discovers, stores, and reuses CSS selectors across scrape
 
 Selectors are the core unit of Yosoi's caching model. Once discovered for a domain, they are stored locally and reused on every subsequent scrape with no LLM call required.
 
-## Primary, fallback, and tertiary
+## Primary, Fallback, and Tertiary
 
 For each field in your contract, Yosoi asks the LLM for up to three selector candidates:
 
@@ -17,7 +17,7 @@ For each field in your contract, Yosoi asks the LLM for up to three selector can
 
 During extraction, Yosoi tries the primary first. If it matches, the other slots are ignored. If it returns no elements, the fallback is tried, then the tertiary. This layered approach means a minor site redesign that breaks the primary selector often does not break extraction entirely.
 
-## Selector types
+## Selector Types
 
 Yosoi supports four selector strategies, tried in escalating order if the preferred strategy fails inline verification:
 
@@ -43,7 +43,7 @@ All Yosoi state lives in `.yosoi/` in your project root. It is created automatic
   stats.json        # Cumulative LLM call and usage statistics
 ```
 
-### Selector cache files
+### Selector Cache Files
 
 Each domain gets its own file: `selectors_example_com.json`. The format is a snapshot per field:
 
@@ -70,7 +70,7 @@ The `source` field records how the selector was obtained:
 | `pinned` | Set explicitly in the contract with `ys.css(...)` |
 | `override` | Manually edited in the cache file |
 
-## Typed selector cache models
+## Typed Selector Cache Models
 
 Every selector cache structure is backed by a Pydantic model, so cache files are validated on read and write. The key types are:
 
@@ -85,7 +85,7 @@ Every selector cache structure is backed by a Pydantic model, so cache files are
 
 All are importable from the top-level package (e.g. `from yosoi import SelectorSnapshot, SnapshotMap`). For full field-level documentation, see the [Selector Cache Types reference](../reference/selector-cache.md).
 
-## Cache verdicts
+## Cache Verdicts
 
 On each scrape, Yosoi checks the cached selectors against the live HTML before deciding whether to call the LLM:
 
@@ -97,7 +97,7 @@ On each scrape, Yosoi checks the cached selectors against the live HTML before d
 
 When only some fields are stale, Yosoi runs **partial rediscovery**: it re-discovers only the stale fields and merges the results with the fresh cached selectors. This keeps LLM costs minimal even when a site partially redesigns.
 
-## Pinning selectors
+## Pinning Selectors
 
 If you already know the right selector, set it directly on the contract field. Pinned selectors are never sent to the LLM and never overwritten by discovery:
 
@@ -111,7 +111,7 @@ class Article(ys.Contract):
 
 Pinned selectors still go through verification and fallback logic at extraction time.
 
-## Forcing re-discovery
+## Forcing Re-Discovery
 
 To discard the cache and run discovery from scratch:
 

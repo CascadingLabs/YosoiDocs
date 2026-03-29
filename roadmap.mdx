@@ -62,9 +62,9 @@ Publish Yosoi to Conda Forge to make installation as easy as possible for users 
 
 <Badge text="Proposed" variant="note" size="small" />
 
-A DAG and node-based pipeline architecture that would let Yosoi drive a real browser (Zendriver<sup>[△](#ref-1)</sup>) to fetch and render JavaScript-heavy pages. L2 sites (SPAs, framework-rendered apps) would no longer require you to run a browser automation tool yourself before passing HTML in.
+A DAG and node-based pipeline architecture, actively in development, that will let Yosoi drive a real browser (Zendriver<sup>[△](#ref-1)</sup>) to fetch and render JavaScript-heavy pages. L2 sites (SPAs, framework-rendered apps) will no longer require you to run a browser automation tool yourself before passing HTML in.
 
-The idea is to create a new class of selector that can capture DOM assertions, actions, and arrangements (A3) without needing a bulky LLM to drive.
+This introduces a new class of selector that can capture DOM assertions, actions, and arrangements (A3) without needing a bulky LLM to drive.
 
 </Card>
 
@@ -82,7 +82,7 @@ A mode that merges selector caches across domains that serve the same content. I
 
 <Badge text="Proposed" variant="note" size="small" />
 
-A first-class multi-page crawling mode. Currently Yosoi operates on single pages — there is no way to chain together multiple linked pages. Multi-page crawling is a common use-case that makes sense to include natively. This would likely require expanding the AI generation step so that stateful "steps" are defined for the LLM to replay its predecessor's selectors and JavaScript actions needed to complete a crawl. Much of this will be blocked by JS rendering and execution, tying it closely to the DOM-Enabled Scraping (A3Nodes) proposal above.
+A first-class multi-page crawling mode. Currently Yosoi operates on single pages — there is no way to chain together multiple linked pages. Multi-page crawling is a common use-case that makes sense to include natively. This would likely require expanding the AI generation step so that stateful "steps" are defined for the LLM to replay its predecessor's selectors and JavaScript actions needed to complete a crawl. With DOM-enabled rendering progressing rapidly via the A3Nodes work above, this is becoming increasingly viable.
 
 <LinkCard title="Issue #34" href="https://github.com/CascadingLabs/Yosoi/issues/34" description="Track this feature on GitHub" />
 

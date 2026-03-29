@@ -48,13 +48,13 @@ uv run python output.py
 
 Results are written to `.yosoi/content/<domain>/results.json`. Multi-item pages are saved as `{"items": [...]}`.
 
-## Multiple formats at once
+## Multiple Formats at Once
 
 ```python
 pipeline = ys.Pipeline(config, contract=Article, output_format=['json', 'csv'])
 ```
 
-## Supported formats
+## Supported Formats
 
 | Format | Extension | Notes |
 |--------|-----------|-------|

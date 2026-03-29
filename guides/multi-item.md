@@ -25,7 +25,7 @@ async for item in pipeline.scrape('https://books.toscrape.com'):
 
 `scrape()` is an async generator that yields one `ContentMap` per item found on the page.
 
-## Pinning the container
+## Pinning the Container
 
 If the AI guesses wrong, or you already know the wrapper element, set `root` on the contract:
 
@@ -39,7 +39,7 @@ class Product(ys.Contract):
 
 `root` takes precedence over whatever the AI discovers. Use this when you want deterministic behaviour across runs.
 
-## Single-item pages
+## Single-Item Pages
 
 `scrape()` works the same way on detail pages; it just yields one item. No special handling needed.
 
@@ -53,7 +53,7 @@ async for item in pipeline.scrape('https://books.toscrape.com/catalogue/a-light-
     print(item)  # yields exactly one item
 ```
 
-## Saving output
+## Saving Output
 
 Pass `output_format='json'` to persist results. Multi-item pages are saved as `{"items": [...]}`.
 

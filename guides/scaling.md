@@ -3,8 +3,9 @@ title: Scaling
 description: Running Yosoi at scale with queues, observability, and distributed storage.
 ---
 
-*Full documentation coming soon.*
+### *Feature and documentation planned.*
 
+---
 Yosoi is designed to scale beyond a single machine. The integrations below are planned or in progress:
 
 | Integration | Role |

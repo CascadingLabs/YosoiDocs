@@ -5,7 +5,7 @@ description: Transform and normalise extracted values without boilerplate.
 
 Yosoi offers two layers of field-level validation: built-in type coercions that handle the common cases, and a `Validators` inner class for custom transforms.
 
-## Built-in coercions
+## Built-in Coercions
 
 Field types like `ys.Price()`, `ys.Title()`, and `ys.Author()` coerce raw strings automatically -- no `@field_validator` needed.
 
@@ -27,7 +27,7 @@ result = Product.model_validate(raw)
 # result.rating == 'Three'                   (whitespace stripped)
 ```
 
-## Validators inner class
+## Validators Inner Class
 
 For custom per-field transforms, define static methods inside a `Validators` class. They run before Pydantic's<sup>[△](#ref-1)</sup> own validation. No decorator ceremony required.
 

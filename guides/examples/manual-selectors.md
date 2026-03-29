@@ -11,7 +11,7 @@ Sometimes you already know the right selector for one or more fields. Yosoi lets
 - You want deterministic extraction for critical fields
 - You want to reduce LLM calls by providing known selectors upfront
 
-## Pinning a field selector
+## Pinning a Field Selector
 
 Use `selector='...'` on any field to provide a CSS selector directly. That field is excluded from AI discovery.
 
@@ -51,7 +51,7 @@ Or from the CLI:
 uv run yosoi --url https://qscrape.dev/l1/taxes --contract taxes.py:TaxRecord --output json
 ```
 
-## Pinning on type factories
+## Pinning on Type Factories
 
 The `selector` parameter works on built-in type factories too, not just `ys.Field()`:
 
@@ -65,13 +65,13 @@ class Article(ys.Contract):
 
 The `selector` kwarg is forwarded to the underlying `Field()` call, so it works the same way regardless of which factory you use.
 
-## How it works under the hood
+## How It Works Under the Hood
 
 When Yosoi builds the selector model to send to the AI, it calls `Contract.get_selector_overrides()` to find every field with a `selector` set. Those fields are excluded from the schema the AI sees -- the AI only discovers selectors for the remaining fields.
 
 During extraction, pinned selectors are merged back in and used directly alongside the AI-discovered ones. From the extractor's perspective, there is no difference between a pinned and a discovered selector.
 
-## Pinning the root
+## Pinning the Root
 
 As covered in the [E-Commerce example](/guides/examples/e-commerce/), you can also pin the repeating container:
 
@@ -86,7 +86,7 @@ class Product(ys.Contract):
 
 `root` accepts `ys.css()`, `ys.xpath()`, `ys.regex()`, or `ys.jsonld()`. CSS is the most common.
 
-## Fully manual contracts
+## Fully Manual Contracts
 
 You can pin every field and skip AI discovery entirely:
 
@@ -101,7 +101,7 @@ class FullyPinned(ys.Contract):
 
 With every field pinned, Yosoi makes zero LLM calls. It fetches the page, applies your selectors, coerces the values through the type system, and returns the results. This is useful when you already know the markup and want Yosoi purely for its extraction pipeline and type coercion.
 
-## Mixing strategies
+## Mixing Strategies
 
 A single contract can combine all of these:
 

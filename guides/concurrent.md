@@ -5,7 +5,7 @@ description: Process multiple URLs in parallel with the Pipeline.
 
 `Pipeline.process_urls()` accepts a list of URLs and a `workers` argument. When `workers > 1`, a Rich<sup>[△](#ref-1)</sup> Live progress table appears automatically. No extra setup required.
 
-## Basic usage
+## Basic Usage
 
 ```python
 import asyncio
@@ -32,7 +32,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-## Result shape
+## Result Shape
 
 `process_urls()` returns a dict with three keys:
 

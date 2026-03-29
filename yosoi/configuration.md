@@ -3,7 +3,7 @@ title: Configuration
 description: Environment variables and runtime options.
 ---
 
-## Environment variables
+## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
@@ -18,7 +18,7 @@ description: Environment variables and runtime options.
 
 These are the most commonly used provider keys. Yosoi supports [25+ providers](/reference/helpers/) -- each with its own environment variable. You only need one.
 
-## Local storage
+## Local Storage
 
 Yosoi stores all state in `.yosoi/` in your project root (gitignored by default):
 

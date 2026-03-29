@@ -15,7 +15,7 @@ The built-in `Product` contract extracts name, price, rating, reviews count, des
 uv run yosoi --url https://qscrape.dev/l1/eshop --contract Product --output json
 ```
 
-## Python: automatic root discovery
+## Python: Automatic Root Discovery
 
 When you omit `root`, Yosoi asks the AI to find the repeating container as part of selector discovery. The AI sees an optional `root` field in the contract schema with the description: *"Selector for the repeating wrapper element that contains one complete item."* If the page has a listing layout, the AI returns a root selector; if it's a single-item page, it returns `null`.
 
@@ -40,7 +40,7 @@ asyncio.run(main())
 
 This works well for most sites. The AI inspects the HTML for repeating structural patterns and returns a selector like `article.product_pod` or `div.product-card`.
 
-## Python: pinned root
+## Python: Pinned Root
 
 Pin the container with `root` when you already know the wrapper element, or when the AI picks the wrong one:
 
@@ -78,7 +78,7 @@ Or use a custom contract from the CLI:
 uv run yosoi --url https://qscrape.dev/l1/eshop --contract products_pinned.py:Product
 ```
 
-## Automatic vs. pinned root
+## Automatic vs. Pinned Root
 
 | | Automatic | Pinned |
 |---|---|---|
@@ -88,13 +88,13 @@ uv run yosoi --url https://qscrape.dev/l1/eshop --contract products_pinned.py:Pr
 | **Cache behaviour** | The discovered root is cached in `.yosoi/selectors/` like any other field | The pinned root is used directly; it is not stored in the cache |
 | **Stale handling** | If the root selector stops matching, Yosoi forces full re-discovery | If a pinned selector stops matching, extraction fails -- you need to update the contract |
 
-### Resolution order
+### Resolution Order
 
 1. If the contract has `root = ys.css(...)` or `root = ys.xpath(...)`, that value is always used. The AI's discovered root (if any) is discarded.
 2. If no `root` is set, Yosoi uses whatever the AI returned for the `root` field during discovery.
 3. If the AI returned `null` for root (single-item page), extraction runs against the full page.
 
-### When automatic discovery goes wrong
+### When Automatic Discovery Goes Wrong
 
 The most common failure mode is the AI selecting a container that's too broad (e.g. the whole page body) or too narrow (e.g. a single element within a card). Symptoms:
 
@@ -117,6 +117,6 @@ uv run yosoi --url https://qscrape.dev/l1/eshop --contract products_auto.py:Prod
 
 Snapshots are saved to `.yosoi/debug_html/`.
 
-## What to expect
+## What to Expect
 
 Each product card on the page yields one item. Prices are coerced to `float` automatically by `ys.Price()` -- currency symbols and thousands separators are stripped.

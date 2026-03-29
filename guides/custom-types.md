@@ -80,7 +80,7 @@ class BookListing(ys.Contract):
     isbn13: str = ISBN.field(require_isbn13=True)
 ```
 
-## Using custom types in a contract
+## Using Custom Types in a Contract
 
 Both patterns produce types that compose naturally with built-ins:
 

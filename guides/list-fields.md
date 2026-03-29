@@ -5,7 +5,7 @@ description: Extract multiple values per field using list[T] in your contract.
 
 Declare a field as `list[T]` when a page contains several values for the same slot -- tags, prices, categories, authors. Yosoi handles two common DOM patterns automatically.
 
-## Pattern A: separate elements
+## Pattern A: Separate Elements
 
 One selector, multiple matching nodes. The extractor collects the text from each match.
 
@@ -28,7 +28,7 @@ class Quote(ys.Contract):
 
 The AI discovers `a.tag` and the extractor returns all matched texts as a list.
 
-## Pattern B: delimited string
+## Pattern B: Delimited String
 
 One selector, one node with a comma/semicolon-separated value. Yosoi splits it automatically.
 
@@ -44,7 +44,7 @@ result = Quote.model_validate(raw)
 
 The default delimiter splits on `,`, `;`, and the word `and`.
 
-## Custom delimiter
+## Custom Delimiter
 
 Override the split pattern with `delimiter`:
 
@@ -60,7 +60,7 @@ result = Article.model_validate(raw)
 # result.categories == ['Tech', 'Science', 'AI']
 ```
 
-## Per-element coercion
+## Per-Element Coercion
 
 Yosoi type coercions apply element-by-element when the field is a list. Mix `list[float]` with `ys.Price()` to strip currency symbols from each value:
 
@@ -76,7 +76,7 @@ result = PriceComparison.model_validate(raw)
 # result.vendor_prices == [12.99, 9.50, 11.00]
 ```
 
-## Pinning the selector
+## Pinning the Selector
 
 If the AI discovers the wrapper element instead of the individual items, pin the selector explicitly:
 

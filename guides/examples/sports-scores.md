@@ -44,6 +44,6 @@ Run it:
 uv run python scores.py
 ```
 
-## What to expect
+## What to Expect
 
 Each row in the scoreboard yields one item with team names, the final score, and a parsed date. The `description` on each `ys.Field()` tells the AI what to look for during selector discovery -- this is especially important for generic fields that don't have a built-in type to guide the LLM.

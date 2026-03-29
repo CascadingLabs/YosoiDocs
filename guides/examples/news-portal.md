@@ -57,7 +57,7 @@ You can also use a custom contract from the CLI by pointing to the file:
 uv run yosoi --url https://qscrape.dev/l1/news --contract news.py:Article
 ```
 
-## What to expect
+## What to Expect
 
 - First run: Yosoi calls the LLM to discover selectors, then extracts and prints each article. Selectors are cached to `.yosoi/selectors/`.
 - Second run: Selectors are loaded from cache. No LLM call, near-instant extraction.
