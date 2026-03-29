@@ -1,0 +1,161 @@
+---
+title: Introduction
+description: AI-powered CSS selector discovery for web scraping.
+---
+
+import CostEffortChart from '../../../src/components/CostEffortChart.tsx';
+import PipelineChart from '../../../src/components/PipelineChart.tsx';
+import JsonLd from '../../../src/components/JsonLd.astro';
+
+<JsonLd schema={{
+	"@context": "https://schema.org",
+	"@type": "SoftwareApplication",
+	name: "Yosoi",
+	applicationCategory: "DeveloperApplication",
+	operatingSystem: "Cross-platform",
+	description: "AI-powered CSS selector discovery for web scraping. Discover selectors once with an LLM, cache them, and scrape forever at zero cost.",
+	url: "https://cascadinglabs.com/yosoi/",
+	offers: {
+		"@type": "Offer",
+		price: "0",
+		priceCurrency: "USD",
+	},
+	author: {
+		"@type": "Organization",
+		name: "Cascading Labs",
+		url: "https://cascadinglabs.com",
+	},
+}} />
+
+<JsonLd schema={{
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	mainEntity: [
+		{
+			"@type": "Question",
+			name: "What is Yosoi?",
+			acceptedAnswer: {
+				"@type": "Answer",
+				text: "YOSOI stands for You Only Scrape Once (iteratively). Instead of calling an LLM on every scrape or relying on flaky regex heuristics, Yosoi discovers selectors automatically the first time and caches them. You pay once and extract for free from then on. When selectors go stale, Yosoi re-discovers only the broken fields, not the whole contract, so costs stay minimal even as sites change.",
+			},
+		},
+		{
+			"@type": "Question",
+			name: "How does Yosoi work?",
+			acceptedAnswer: {
+				"@type": "Answer",
+				text: "You point it at a URL. Yosoi fetches the HTML, sends it to an LLM to identify stable CSS selectors, validates them, and caches the result. Every subsequent scrape of that domain uses the cached selectors directly with no LLM involved.",
+			},
+		},
+		{
+			"@type": "Question",
+			name: "Why was Yosoi built?",
+			acceptedAnswer: {
+				"@type": "Answer",
+				text: "For internal use at Cascading Labs. Every other API or LLM-per-request approach would have cost hundreds of thousands of dollars at scale. Yosoi was the only economically viable path, and we figured others had the same problem.",
+			},
+		},
+		{
+			"@type": "Question",
+			name: "Does Yosoi work with JavaScript-rendered sites?",
+			acceptedAnswer: {
+				"@type": "Answer",
+				text: "Yosoi fetches static HTML. For sites that require JavaScript to render content, use a headless browser (Playwright, Puppeteer) to render the page first, then pass the HTML to Yosoi. A native DOM fetcher is planned but not available yet.",
+			},
+		},
+		{
+			"@type": "Question",
+			name: "What happens if a site redesigns its layout?",
+			acceptedAnswer: {
+				"@type": "Answer",
+				text: "Some cached selectors will likely break. Yosoi detects stale selectors at scrape time and runs partial rediscovery — only the broken fields are sent back to the LLM. The fresh selectors are merged into the existing cache. You can also force a full rediscovery by deleting the domain's file from .yosoi/selectors/ or passing --force.",
+			},
+		},
+		{
+			"@type": "Question",
+			name: "Which LLM provider gives the best results?",
+			acceptedAnswer: {
+				"@type": "Answer",
+				text: "Results are generally consistent across providers. Groq and Gemini are fast and cheap; OpenAI tends to be more conservative with selector choices. Run discovery with --model to compare.",
+			},
+		},
+	],
+}} />
+
+**Yosoi**; **You Only Scrape Once (iteratively)**. The core idea: pay for LLM-based scraping once per domain, then scrape that domain forever using the cached selectors with no further AI costs.
+
+Yosoi takes a pipelined approach, were every selector is treated as a cache. When a site redesigns and cached selectors go stale, Yosoi detects the breakage, re-discovers only the fields that changed, and merges the fresh selectors back into the selector cache. You only pay again for AI discovery again on that partial diff, not from scratch. Over time, the cost of keeping selectors current trends toward zero as layouts stabilize.
+
+Most web scraping tools make you choose between cost and reliability. LLM-per-request APIs are accurate but expensive at scale. Regex heuristics are cheap but brittle. Yosoi takes a different approach: use an LLM once per domain to discover selectors, cache the result, and scrape indefinitely at near-zero cost.
+
+<CostEffortChart client:visible />
+
+## Technical Notes
+
+**Pydantic** [△](#ref-1) is the foundation for contract definitions and data validation. You declare what you want to extract as a typed Pydantic model. Yosoi handles the rest.
+
+**Async native.** The scraping pipeline is built on `asyncio` [○](#ref-2) from the ground up. `scrape()` is an async generator; `process_urls()` is fully non-blocking.
+
+**Concurrent background workers.** `Pipeline.process_urls()` dispatches URLs as independent tasks via a TaskIQ<sup>[◑](#ref-3)</sup> in-memory broker, distributing work across a configurable worker pool. Discovery and extraction can run in parallel with no external queue required.
+
+## How It Works
+
+1. You provide a URL and a data contract (a typed Pydantic model describing what to extract)
+2. Yosoi fetches the page and sends it to an LLM
+3. The LLM identifies stable selectors for each field in the contract
+4. Selectors are validated and stored in `.yosoi/selectors/`
+5. Future scrapes use the cached selectors directly, with no LLM call needed
+
+<PipelineChart client:visible />
+
+## FAQs
+
+<details>
+<summary>What is Yosoi?</summary>
+
+**Y**ou **O**nly **S**crape **O**nce (**i**teratively). Instead of calling an LLM on every scrape or relying on flaky regex heuristics, Yosoi discovers selectors automatically the first time and caches them. You pay once and extract at cost from then on. When selectors go stale, Yosoi re-discovers only the broken fields  **not the whole contract** so costs stay minimal even as sites change.
+
+</details>
+
+<details>
+<summary>How does Yosoi work?</summary>
+
+You point it at a URL. Yosoi fetches the HTML, sends it to an LLM to identify stable CSS selectors, validates them, and caches the result. Every subsequent scrape of that domain uses the cached selectors directly with no LLM involved.
+
+</details>
+
+<details>
+<summary>Why was Yosoi built?</summary>
+
+For internal use at Cascading Labs. Every other API or LLM-per-request approach would have cost hundreds of thousands of dollars at scale. Yosoi was the only economically viable path, and we figured others had the same problem.
+
+</details>
+
+<details>
+<summary>Does Yosoi work with JavaScript-rendered sites?</summary>
+
+Yosoi fetches static HTML. For sites that require JavaScript to render content, use a headless browser (Playwright, Puppeteer) to render the page first, then pass the HTML to Yosoi. A native DOM fetcher is planned for our beta in mid-2026, but not is not yet stable.
+
+</details>
+
+<details>
+<summary>What happens if a site redesigns its layout?</summary>
+
+Some cached selectors will likely break. Yosoi detects stale selectors at scrape time and runs partial rediscovery -- only the broken fields are sent back to the LLM. The fresh selectors are merged into the existing cache. You can also force a full rediscovery by deleting the domain's file from `.yosoi/selectors/` or passing `--force`.
+
+</details>
+
+<details>
+<summary>Which LLM provider gives the best results?</summary>
+
+Results are generally consistent across providers. Models with larger context windows and large parameter counts generally perform better. We like to use models hosted on Groq or OpenRouter for simplicity. But we support over [25+ providers](https://cascadinglabs.com/reference/helpers/) for convienience.
+
+</details>
+
+## References
+
+<a id="ref-1"></a>△ **Pydantic**. Pydantic Services Inc. *Data validation library for Python.* https://docs.pydantic.dev/
+
+<a id="ref-2"></a>○ **asyncio**. Python Software Foundation. *Asynchronous I/O framework in the Python standard library.* https://docs.python.org/3/library/asyncio.html
+
+<a id="ref-3"></a>◑ **TaskIQ**. TaskIQ Contributors. *Distributed task queue for Python with asyncio support, used internally as the broker for concurrent URL processing.* https://taskiq-python.github.io/
