@@ -35,12 +35,12 @@ For L2 sites, render the page yourself with a headless browser (Playwright<sup>[
 
 <Card title="Why QScrape tests four frameworks">
 
-[QScrape L2 sites](https://qscrape.dev) cover this category with Lit<sup>[◇](#ref-4)</sup>, Svelte<sup>[★](#ref-5)</sup>, React<sup>[⬡](#ref-6)</sup>, and Vue<sup>[▽](#ref-7)</sup>. We picked these because they cover different ways to interact with the DOM.
+[QScrape L2 sites](https://qscrape.dev) cover this category with Svelte<sup>[◇](#ref-4)</sup>, React<sup>[★](#ref-5)</sup>, Vue<sup>[⬡](#ref-6)</sup>, and Solid<sup>[▽](#ref-7)</sup>. We picked these because they cover different ways to interact with the DOM.
 
-- **Lit** — uses shadow DOMs, which encapsulate markup inside components so that normal CSS selectors cannot reach in.
-- **React** — uses a virtual DOM, diffing a JavaScript tree against the real DOM on each update, so the live markup can shift between renders.
 - **Svelte** — compiled, meaning it emits plain imperative DOM calls with no runtime framework layer, but build-tool class hashing still applies.
+- **React** — uses a virtual DOM, diffing a JavaScript tree against the real DOM on each update, so the live markup can shift between renders.
 - **Vue** — pairs a reactive proxy system with a virtual DOM and template-based rendering, producing output similar to React but with different internal update patterns.
+- **Solid** — uses fine-grained signals with no virtual DOM; JSX compiles to direct DOM operations that update only the specific nodes affected by a state change, with no component re-renders.
 
 Each approach leaves a different fingerprint in the rendered HTML, which is why a selector strategy that works on one framework may fail on another.
 
@@ -108,13 +108,13 @@ Yes. It is a fast way to verify your pipeline is wired up correctly before sendi
 
 <a id="ref-3"></a>◑ **Puppeteer**. Google Chrome DevTools. *Node.js library providing a high-level API to control headless Chrome.* https://pptr.dev/
 
-<a id="ref-4"></a>◇ **Lit**. Google. *Simple, fast, web components library.* https://lit.dev/
+<a id="ref-4"></a>◇ **Svelte**. Rich Harris. *Compiler-based frontend framework.* https://svelte.dev/
 
-<a id="ref-5"></a>★ **Svelte**. Rich Harris. *Compiler-based frontend framework.* https://svelte.dev/
+<a id="ref-5"></a>★ **React**. Meta. *JavaScript library for building user interfaces.* https://react.dev/
 
-<a id="ref-6"></a>⬡ **React**. Meta. *JavaScript library for building user interfaces.* https://react.dev/
+<a id="ref-6"></a>⬡ **Vue**. Evan You. *Progressive JavaScript framework for building UIs.* https://vuejs.org/
 
-<a id="ref-7"></a>▽ **Vue**. Evan You. *Progressive JavaScript framework for building UIs.* https://vuejs.org/
+<a id="ref-7"></a>▽ **Solid**. Ryan Carniato. *Fine-grained reactive UI library with no virtual DOM.* https://www.solidjs.com/
 
 <a id="ref-8"></a>◎ **webpack**. webpack contributors. *Static module bundler for JavaScript applications.* https://webpack.js.org/
 

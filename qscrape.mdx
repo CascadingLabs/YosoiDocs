@@ -84,11 +84,11 @@ Standard sites with no dynamic data and no web frameworks. Currently available:
 
 ### L2: Modern Frameworks
 
-Sites built with Lit [△](#ref-1), Svelte [○](#ref-2), React [◑](#ref-3), and Vue [◇](#ref-4), covering typical DOM-level complexity found in the wild.
+Sites built with Svelte [△](#ref-1), React [○](#ref-2), Vue [◑](#ref-3), and Solid [◇](#ref-4). Each framework leaves a distinct fingerprint in the rendered HTML — compiled class hashing, virtual DOM diffing, reactive proxy rendering, and fine-grained signal-based updates respectively — covering the DOM-level complexity typical of real-world SPAs.
 
 ### L3: Anti-Bot
 
-Sites with anti-bot protections (excluding captchas or challenge puzzles that would require anti-captcha APIs).
+Sites that actively resist automated access. Techniques applied include rate limiting, request-header fingerprinting, session-cookie enforcement, and obfuscated markup. Captchas and challenge puzzles are excluded. Use these to test how your scraping pipeline holds up before hitting live targets.
 
 ## Using QScrape with Yosoi
 
@@ -126,10 +126,10 @@ L2 sites add framework complexity (React, Svelte, etc.) but make no attempt to b
 
 ## References
 
-<a id="ref-1"></a>△ **Lit**. Google. *Simple, fast web components library.* https://lit.dev/
+<a id="ref-1"></a>△ **Svelte**. Rich Harris. *Compiler-based frontend framework.* https://svelte.dev/
 
-<a id="ref-2"></a>○ **Svelte**. Rich Harris. *Compiler-based frontend framework.* https://svelte.dev/
+<a id="ref-2"></a>○ **React**. Meta. *JavaScript library for building user interfaces.* https://react.dev/
 
-<a id="ref-3"></a>◑ **React**. Meta. *JavaScript library for building user interfaces.* https://react.dev/
+<a id="ref-3"></a>◑ **Vue**. Evan You. *Progressive JavaScript framework for building UIs.* https://vuejs.org/
 
-<a id="ref-4"></a>◇ **Vue**. Evan You. *Progressive JavaScript framework for building UIs.* https://vuejs.org/
+<a id="ref-4"></a>◇ **Solid**. Ryan Carniato. *Fine-grained reactive UI library with no virtual DOM.* https://www.solidjs.com/
