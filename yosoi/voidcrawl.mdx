@@ -1,0 +1,123 @@
+---
+title: VoidCrawl
+description: Rust-native CDP browser automation for Python via PyO3.
+---
+
+import JsonLd from '../../../src/components/JsonLd.astro';
+
+<JsonLd schema={{
+	"@context": "https://schema.org",
+	"@type": "SoftwareApplication",
+	name: "VoidCrawl",
+	applicationCategory: "DeveloperApplication",
+	operatingSystem: "Cross-platform",
+	description: "Rust-native CDP browser automation for Python. A Chrome DevTools Protocol client exposed via PyO3, replacing Playwright/Selenium with a permissively-licensed stack.",
+	url: "https://cascadinglabs.com/voidcrawl/",
+	offers: {
+		"@type": "Offer",
+		price: "0",
+		priceCurrency: "USD",
+	},
+	author: {
+		"@type": "Organization",
+		name: "Cascading Labs",
+		url: "https://cascadinglabs.com",
+	},
+}} />
+
+<JsonLd schema={{
+	"@context": "https://schema.org",
+	"@type": "FAQPage",
+	mainEntity: [
+		{
+			"@type": "Question",
+			name: "Why does Yosoi use VoidCrawl instead of Playwright or Selenium?",
+			acceptedAnswer: {
+				"@type": "Answer",
+				text: "VoidCrawl is Apache-2.0 licensed and written in Rust via PyO3, so it avoids the Node.js subprocess overhead of Playwright and the WebDriver latency of Selenium. It also shares a single Tokio runtime across tabs for near-zero overhead reuse.",
+			},
+		},
+		{
+			"@type": "Question",
+			name: "Do I need VoidCrawl to use Yosoi?",
+			acceptedAnswer: {
+				"@type": "Answer",
+				text: "Only when your target pages require JavaScript rendering. For static HTML pages, Yosoi can work with a simple HTTP response. VoidCrawl is needed when the page content is rendered client-side.",
+			},
+		},
+		{
+			"@type": "Question",
+			name: "What is the Chrome DevTools Protocol?",
+			acceptedAnswer: {
+				"@type": "Answer",
+				text: "CDP is the low-level protocol that Chrome exposes for programmatic control — navigating pages, executing JavaScript, capturing screenshots, and intercepting network requests. VoidCrawl speaks CDP natively from Rust.",
+			},
+		},
+		{
+			"@type": "Question",
+			name: "Can VoidCrawl run in Docker?",
+			acceptedAnswer: {
+				"@type": "Answer",
+				text: "Yes. VoidCrawl has first-class support for both headless and headful Docker containers, including VNC for visual debugging.",
+			},
+		},
+	],
+}} />
+
+**VoidCrawl** is a Rust-native Chrome DevTools Protocol [△](#ref-1) (CDP) client exposed to Python via PyO3 [○](#ref-2). It replaces Playwright [◑](#ref-3) and Selenium [◇](#ref-4) with a permissively-licensed (Apache-2.0) stack for rendering JavaScript-heavy pages, controlling browsers, and automating web interactions.
+
+Built on [chromiumoxide](https://github.com/mattsse/chromiumoxide) with a shared Tokio [★](#ref-5) runtime, VoidCrawl gives you async-first browser automation with near-zero overhead tab reuse.
+
+## How Yosoi Uses VoidCrawl
+
+Yosoi uses VoidCrawl as its browser automation backend. When a page requires JavaScript rendering before selector discovery can begin, VoidCrawl handles the headless browsing — launching tabs, waiting for content, and returning the fully rendered DOM for Yosoi to analyse.
+
+## Key Features
+
+- **Rust-native performance** — CDP commands run in a compiled Tokio runtime, not a Node.js subprocess.
+- **Async-first** — Every API is `async`/`await` from the ground up.
+- **Browser pool** — Reuse tabs across tasks with near-zero overhead.
+- **Built-in actions** — Click, type, scroll, screenshot, and evaluate JavaScript without extra dependencies.
+- **Docker-ready** — First-class support for headless and headful containers.
+
+## FAQs
+
+<details>
+<summary>Why does Yosoi use VoidCrawl instead of Playwright or Selenium?</summary>
+
+VoidCrawl is Apache-2.0 licensed and written in Rust via PyO3, so it avoids the Node.js subprocess overhead of Playwright and the WebDriver latency of Selenium. It also shares a single Tokio runtime across tabs for near-zero overhead reuse.
+
+</details>
+
+<details>
+<summary>Do I need VoidCrawl to use Yosoi?</summary>
+
+Only when your target pages require JavaScript rendering. For static HTML pages, Yosoi can work with a simple HTTP response. VoidCrawl is needed when the page content is rendered client-side.
+
+</details>
+
+<details>
+<summary>What is the Chrome DevTools Protocol?</summary>
+
+CDP is the low-level protocol that Chrome exposes for programmatic control — navigating pages, executing JavaScript, capturing screenshots, and intercepting network requests. VoidCrawl speaks CDP natively from Rust.
+
+</details>
+
+<details>
+<summary>Can VoidCrawl run in Docker?</summary>
+
+Yes. VoidCrawl has first-class support for both headless and headful Docker containers, including VNC for visual debugging.
+
+</details>
+
+## References
+
+<a id="ref-1"></a>△ **Chrome DevTools Protocol**. Google. *Protocol for instrumenting, inspecting, and debugging Chromium-based browsers.* https://chromedevtools.github.io/devtools-protocol/
+
+<a id="ref-2"></a>○ **PyO3**. PyO3 Project. *Rust bindings for the Python interpreter.* https://pyo3.rs/
+
+<a id="ref-3"></a>◑ **Playwright**. Microsoft. *End-to-end testing and browser automation framework.* https://playwright.dev/
+
+<a id="ref-4"></a>◇ **Selenium**. Selenium Project. *Browser automation for testing and scraping.* https://www.selenium.dev/
+
+<a id="ref-5"></a>★ **Tokio**. Tokio Project. *Asynchronous runtime for Rust.* https://tokio.rs/
