@@ -23,6 +23,10 @@ Source files for the [Yosoi](https://github.com/CascadingLabs/Yosoi) documentati
 - **guides/** -How-to guides covering selectors, multi-item extraction, concurrency, custom types, and more
 - **reference/** -Auto-generated API reference (produced by `scripts/generate_api_docs.py` in the Yosoi repo)
 
+## Contact
+
+[contact@cascadinglabs.com](mailto:contact@cascadinglabs.com)
+
 ## License
 
 Apache-2.0
