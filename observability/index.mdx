@@ -1,0 +1,126 @@
+---
+title: Observability
+description: How Yosoi maps scraping work onto Langfuse (sessions, traces, and per-(sub)domain users).
+faqs:
+  - q: Why are www.example.com and example.com sometimes the same user, sometimes not?
+    a: >-
+      urlparse(url).hostname is lowercased, then exactly one leading "www." is
+      stripped. So www.example.com and example.com collapse to the same user_id,
+      but www.www.example.com normalises to www.example.com (not example.com)
+      because www.foo.com is a real-world hostname pattern and recursive
+      stripping mangles it. There are corners of the web where www.example.com
+      and example.com are intentionally different sites; that is a known edge
+      case Yosoi does not solve today and would resolve with a per-pipeline
+      strip_www flag if it ever bites at scale.
+  - q: Why don't subdomains roll up into the apex?
+    a: >-
+      Because they almost always run different stacks and break differently.
+      shop.example.com's product listing selectors have nothing to do with
+      blog.example.com's article selectors, and conflating them in the Langfuse
+      UI would hide regressions. If you genuinely need eTLD+1 aggregation, do it
+      explicitly with a public-suffix list at query time.
+  - q: Do I need Langfuse keys for Yosoi to run?
+    a: >-
+      No. When LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY are missing,
+      observability is a silent no-op and pipelines run unchanged. Add the keys
+      when you want trace data; remove them to turn it off.
+  - q: Should I use Langfuse Cloud or self-host?
+    a: >-
+      Start with cloud unless you have a hard reason not to. See the Langfuse
+      quickstart for the trade-off and the setup links for both paths.
+---
+
+Yosoi instruments every pipeline with Langfuse<sup>[△](#ref-1)</sup> via OpenTelemetry. The mapping is deliberate so the Langfuse UI tells a coherent story without configuration.
+
+## Why Langfuse (and only Langfuse)
+
+Yosoi is **opinionated**: Langfuse is the supported observability backend, and there are no plans to ship Yosoi-side adapters for other tools. The reason is that everything past `obs.span(...)` is calibrated to how Langfuse models sessions, users, and tags: the per-(sub)domain `user_id`, the `enqueue` detached span, the `langfuse.observation.input` / `output` panel attributes, the `gen_ai.*` cost mapping, the local Docker stack on ClickHouse. Adding "first-class" support for a second tool would mean either re-implementing those abstractions or shipping a thinner integration that drops the polish; neither is worth the maintenance.
+
+That said, Yosoi sits on **OpenTelemetry** under the hood, and `pydantic-ai` (which we use for LLM calls) emits standard OTel spans. If you want to ship those spans somewhere else (Honeycomb, Datadog, Grafana Tempo, Jaeger, an OTLP collector), `pydantic-ai`'s built-in OTel exporters will take you there; see the [pydantic-ai instrumentation docs](https://ai.pydantic.dev/logfire/) for the patterns. You will get the LLM spans (model, tokens, prompt, response) but you will *not* get Yosoi's session / user / tag mapping, the `enqueue` detached-span trick, or the input/output trace-panel enrichment, since all of that is wired through `yosoi.utils.observability` against the Langfuse SDK. We're happy to take PRs that fix bugs in the Langfuse path, but new exporter integrations are out of scope.
+
+## The mapping
+
+
+
+| Langfuse concept | Yosoi mapping |
+| --- | --- |
+| **Session** | One CLI invocation or script process. Every Pipeline created in the same process shares one session id. |
+| **Trace** | One URL processed by `Pipeline.scrape(url)`. Each URL gets exactly one root trace span. |
+| **User** | The (sub)domain of that URL. `shop.example.com`, `blog.example.com`, and `example.com` are intentionally distinct user ids. |
+| **Tags** | `['yosoi', 'cli'\|'script']` on every session, `[domain]` on every trace, plus any custom tags from eval workflows. |
+
+## Diagram
+
+```text
+process  (session_id, tags=['yosoi', 'cli'|'script'])
+  ├── url1  (trace, user_id=shop.example.com, tags=['shop.example.com'])
+  │     └── fetch / clean / discover / verify / extract / save
+  ├── url2  (trace, user_id=blog.example.com, tags=['blog.example.com'])
+  │     └── …
+  └── url3  (trace, user_id=example.com,      tags=['example.com'])
+        └── …
+```
+
+## Subdomains stay distinct
+
+`shop.example.com`, `blog.example.com`, and the apex `example.com` are **separate user ids** by design. Subdomain isolation is the whole point: they often run different stacks and break differently. Yosoi does not roll subdomains up into an apex. If you need eTLD+1 aggregation (e.g. "everything under `example.com` regardless of subdomain") you would need to add it explicitly with a public-suffix list; Yosoi does not ship that today.
+
+## Storage / observability domain alignment
+
+`Pipeline._extract_domain(url)` is a thin delegator over `observability.normalize_user_id(url)` so the value used as the Langfuse `user_id` is the *same* value used as the on-disk selector cache directory. This guarantees that "everything we've ever scraped on `shop.example.com`" in the Langfuse UI corresponds 1:1 with `.yosoi/selectors/shop.example.com/`.
+
+Three other `_extract_domain` implementations exist independently in the codebase (`yosoi/core/discovery/orchestrator.py`, `yosoi/storage/persistence.py`, `yosoi/storage/tracking.py`) and use a slightly different normalisation (`netloc.replace('www.', '')` instead of strip-one-leading). They run on a separate code path from observability and only feed storage filenames; the alignment promise above is bounded to `Pipeline.scrape()`. Converting them to delegate is tracked as a future cleanup with regression tests for any selector-cache filename changes (out of scope for this iteration).
+
+## Why ClickHouse underpins this
+
+Langfuse persists every span, prompt, response, and token count to ClickHouse<sup>[○](#ref-2)</sup>, an open-source columnar OLAP database. That choice is what makes "filter every trace for `shop.example.com` over the last 90 days" feel instant in the UI even after millions of spans. A few properties matter for Yosoi specifically:
+
+- **Columnar storage**: trace queries hit only the columns they need (`user_id`, `session_id`, `tags`, timestamp), so per-domain or per-tag scans skip 90% of on-disk bytes.
+- **Aggressive compression**: span attributes (URLs, model names, tag arrays) are highly repetitive, and ClickHouse's per-column codecs typically reach 10:1 ratios. Months of trace history fit in gigabytes, not terabytes.
+- **Sub-second aggregations at scale**: token usage, cost, latency percentiles per `user_id` or per `session_id` are vectorised SQL on a single columnar scan. The Langfuse UI's session and user filters lean on this directly.
+- **Append-only ingestion**: spans are written once and never updated, which matches ClickHouse's `MergeTree` engine perfectly. The local Docker Compose stack runs a single ClickHouse node and still ingests Yosoi's full per-field LLM fan-out without backpressure.
+
+The practical takeaway: you can leave traces in ClickHouse for the long haul instead of pruning, and the Langfuse UI's filter-and-slice workflows stay fast as the dataset grows.
+
+## Where to next
+
+- [Langfuse quickstart](/observability/langfuse-quickstart/): get keys (cloud or self-hosted) and wire them in.
+- [Instrumenting pipelines](/observability/instrumenting-pipelines/): Python config, the `--session-id` CLI flag, and how tags propagate.
+- [Reading traces](/observability/reading-traces/): filter by user, slice by session, navigate the span tree.
+- [Evals & tagging](/observability/evals-and-tagging/): mocked-eval runs tagged with `regression`, `integration`, or `smoke` for point-in-time views.
+
+## FAQs
+
+<details>
+<summary>Why are www.example.com and example.com sometimes the same user, sometimes not?</summary>
+
+`urlparse(url).hostname` is lowercased, then **exactly one** leading `www.` is stripped. So `www.example.com` and `example.com` collapse to the same `user_id`, but `www.www.example.com` normalises to `www.example.com` (not `example.com`) because `www.foo.com` is a real-world hostname pattern and recursive stripping mangles it. There are corners of the web where `www.example.com` and `example.com` are *intentionally different sites*; that is a known edge case Yosoi does not solve today and would resolve with a per-pipeline `strip_www` flag if it ever bites at scale.
+
+</details>
+
+<details>
+<summary>Why don't subdomains roll up into the apex?</summary>
+
+Because they almost always run different stacks and break differently. `shop.example.com`'s product listing selectors have nothing to do with `blog.example.com`'s article selectors, and conflating them in the Langfuse UI would hide regressions. If you genuinely need eTLD+1 aggregation, do it explicitly with a public-suffix list at query time.
+
+</details>
+
+<details>
+<summary>Do I need Langfuse keys for Yosoi to run?</summary>
+
+No. When `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY` are missing, observability is a silent no-op and pipelines run unchanged. Add the keys when you want trace data; remove them to turn it off.
+
+</details>
+
+<details>
+<summary>Should I use Langfuse Cloud or self-host?</summary>
+
+Start with cloud unless you have a hard reason not to. See the [Langfuse quickstart](/observability/langfuse-quickstart/) for the trade-off and the setup links for both paths.
+
+</details>
+
+## References
+
+<a id="ref-1"></a>△ **Langfuse**. Langfuse. *Open-source LLM observability.* https://langfuse.com/docs
+
+<a id="ref-2"></a>○ **ClickHouse**. ClickHouse, Inc. *Open-source columnar OLAP database.* https://clickhouse.com/docs
