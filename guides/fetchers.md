@@ -3,7 +3,7 @@ title: Fetchers
 description: Choose how Yosoi retrieves HTML — plain HTTP, headless Chrome, or an adaptive waterfall.
 ---
 
-Yosoi fetches HTML before selector discovery and extraction. Every fetch goes through a `HTMLFetcher` instance. The default is a fast plain-HTTP client; for JavaScript-heavy pages you can escalate to a browser-backed fetcher or use the adaptive waterfall that handles both.
+Yosoi fetches HTML before selector discovery and extraction. Every fetch goes through an `HTMLFetcher` instance. The default is a fast plain-HTTP client; for JavaScript-heavy pages you can escalate to a browser-backed fetcher or use the adaptive waterfall that handles both.
 
 ## Fetcher Types
 
@@ -61,7 +61,7 @@ When to use: mixed workloads, sites you haven't tested yet, or anywhere you want
 
 ### Headless and Headful Fetchers
 
-Both tiers use VoidCrawl to drive a Chrome instance and `DOMLoader` to bring the page to a fully-loaded state. The difference is visibility:
+Both tiers use VoidCrawl<sup>[△](#ref-1)</sup> to drive a Chrome instance and `DOMLoader` to bring the page to a fully-loaded state. The difference is visibility:
 
 - **Headless**: Chrome runs without a window. Faster, suitable for most dynamic sites.
 - **Headful**: Chrome shows a visible window. Harder for anti-bot systems to distinguish from a real user. Use when headless gets blocked.
@@ -98,7 +98,7 @@ The waterfall stores the winning fetcher tier per domain in `.yosoi/fetch/`. Thi
     fetch_shop_example_com.json
 ```
 
-Each file records the tier (`'simple'`, `'headless'`, or `'headful'`) and the highest selector strategy level that worked:
+Each file records the tier and the highest selector strategy level that worked:
 
 ```json
 {
@@ -140,7 +140,7 @@ async with create_fetcher('waterfall') as fetcher:
 <details>
 <summary>How do I know which fetcher a URL actually needed?</summary>
 
-Run with `--debug` or check `.yosoi/fetch/`. After the waterfall runs for a domain, the JSON file records which tier won. For sequential processing with no waterfall, the simple fetcher always wins.
+Check `.yosoi/fetch/` after the waterfall runs for a domain. The JSON file records which tier won. Run with `--debug` to also save the HTML Yosoi received from that tier.
 
 </details>
 
@@ -154,6 +154,14 @@ Yes. Each concurrent worker creates its own fetcher instance. For the waterfall,
 <details>
 <summary>Can I pass custom Chrome arguments to the browser fetchers?</summary>
 
-Not directly through the Pipeline API today. The VoidCrawl `BrowserConfig` is constructed inside `_VoidCrawlFetcher.__aenter__` with `headless`, `stealth`, and `no_sandbox` options. Pass `no_sandbox=True` when running inside Docker or other sandboxed environments.
+Not directly through the Pipeline API today. The VoidCrawl `BrowserConfig` is constructed inside the fetcher with `headless`, `stealth`, and `no_sandbox` options. Pass `no_sandbox=True` when running inside Docker or other sandboxed environments.
 
 </details>
+
+## References
+
+<a id="ref-1"></a>△ **VoidCrawl**. Cascading Labs. *Rust-native CDP browser automation for Python via PyO3.* https://github.com/CascadingLabs/VoidCrawl
+
+<a id="ref-2"></a>○ **DOMLoader**. Cascading Labs. *Behavior-tree page loader for Yosoi browser fetchers.* /guides/dom-loader/
+
+<a id="ref-3"></a>◑ **Understanding the Web**. Cascading Labs. *How HTML, the DOM, and JavaScript frameworks affect what Yosoi can see.* /guides/understanding-the-web/

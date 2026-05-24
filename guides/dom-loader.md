@@ -160,3 +160,11 @@ Yes — `fetcher_type='headless'` or `fetcher_type='headful'` use DOMLoader dire
 Not currently. DOMLoader probes for publicly-observable DOM patterns (cookie banners, load-more buttons). It does not handle login forms, session cookies, or authentication flows. Pass pre-authenticated HTML to Yosoi if the target requires login.
 
 </details>
+
+## References
+
+<a id="ref-1"></a>△ **VoidCrawl**. Cascading Labs. *Rust-native CDP browser automation for Python via PyO3.* https://github.com/CascadingLabs/VoidCrawl
+
+<a id="ref-2"></a>○ **MutationObserver**. MDN Web Docs. *Web API for watching for changes to the DOM tree.* https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver
+
+<a id="ref-3"></a>◑ **Behavior Trees**. Wikipedia. *Computational model used in robotics and game AI for task selection.* https://en.wikipedia.org/wiki/Behavior_tree_(artificial_intelligence,_robotics_and_control)

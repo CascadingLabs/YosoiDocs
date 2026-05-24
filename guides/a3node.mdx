@@ -108,13 +108,13 @@ storage.delete('shop.example.com')
 <details>
 <summary>What happens when a site's page structure changes?</summary>
 
-A3Node replay runs the stored actions against the current DOM. If the DOM changed — the cookie banner selector is gone, the load-more button text changed — the action may silently succeed with zero effect (clicking a selector that no longer matches is a no-op in VoidCrawl). The content count comparison inside `ClickTrigger` will detect that content stopped growing and mark the trigger exhausted.
+A3Node replay runs the stored actions against the current DOM. If the DOM changed — the cookie banner selector is gone, the load-more button text changed — the action may silently succeed with zero effect. The content count comparison inside `ClickTrigger` will detect that content stopped growing and mark the trigger exhausted.
 
 If the site changed significantly, delete the recipe and let DOMLoader re-probe:
 
-```bash
-# Delete the cached recipe for one domain
-python -c "from yosoi.storage.a3node import A3NodeStorage; A3NodeStorage().delete('shop.example.com')"
+```python
+from yosoi.storage.a3node import A3NodeStorage
+A3NodeStorage().delete('shop.example.com')
 ```
 
 Or delete all recipes and let them rebuild on next use:
@@ -128,14 +128,14 @@ rm .yosoi/a3nodes/*.json
 <details>
 <summary>Why is replay_count not incrementing?</summary>
 
-Replay only records via `storage.record_replay()` on the empty-recipe path today — the non-empty replay path runs a fresh probe instead of replaying acts (see note in `voiddriver.py`). This is a known limitation of the current experimental implementation. `battle_tested` is meaningful only for empty-recipe domains until full act-replay lands.
+Replay only records via `storage.record_replay()` on the empty-recipe path today — the non-empty replay path runs a fresh probe instead of replaying acts. This is a known limitation of the current experimental implementation. `battle_tested` is meaningful only for empty-recipe domains until full act-replay lands.
 
 </details>
 
 <details>
 <summary>Is A3Node safe to use in production?</summary>
 
-It is experimental. The replay path for non-empty recipes (domains that need action) falls back to a fresh DOMLoader probe rather than actually replaying the stored acts. The caching infrastructure is stable; the replay optimization is what's incomplete. Use it for the empty-recipe fast path (domains that need no action) and treat act replay as a preview.
+It is experimental. The replay path for non-empty recipes falls back to a fresh DOMLoader probe rather than actually replaying the stored acts. The caching infrastructure is stable; the replay optimization is what's incomplete. Use it for the empty-recipe fast path and treat act replay as a preview.
 
 </details>
 
@@ -145,3 +145,9 @@ It is experimental. The replay path for non-empty recipes (domains that need act
 Yes. The file format is plain JSON. Create a file at `.yosoi/a3nodes/a3node_<domain>.json` with the shape shown above. Yosoi loads all files in that directory at fetcher startup via `A3NodeStorage.load_all()`.
 
 </details>
+
+## References
+
+<a id="ref-1"></a>△ **VoidCrawl**. Cascading Labs. *Rust-native CDP browser automation for Python via PyO3.* https://github.com/CascadingLabs/VoidCrawl
+
+<a id="ref-2"></a>○ **DOMLoader**. Cascading Labs. *Behavior-tree page loader for Yosoi browser fetchers.* /guides/dom-loader/
