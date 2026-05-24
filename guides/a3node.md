@@ -1,0 +1,147 @@
+---
+title: A3Node
+description: Cache and replay DOM stability recipes to skip the browser probe phase on repeat visits.
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+<Badge text="Experimental" variant="caution" size="small" />
+
+When Yosoi visits a page with a browser fetcher, `DOMLoader` runs a behavior tree to clear obstacles and exhaust content triggers before capturing the final HTML. This probe phase is thorough but takes time — on a page with load-more pagination it may run dozens of cycles.
+
+**A3Node** is the caching layer that eliminates this overhead on repeat visits. After a successful probe, the sequence of actions that worked is stored as a *stability recipe*. On the next visit to the same domain, the recipe is replayed directly, skipping the probe entirely.
+
+## The Stability Recipe
+
+A recipe is an ordered list of `ActRecord` entries, each recording what kind of action was taken and how many cycles it ran:
+
+```json
+{
+  "domain": "shop.example.com",
+  "acts": [
+    { "kind": "cookie", "cycles": 1 },
+    { "kind": "load_more", "cycles": 7 }
+  ],
+  "discovered_at": "2026-05-23T14:00:00Z",
+  "replay_count": 4,
+  "last_replayed_at": "2026-05-23T18:00:00Z"
+}
+```
+
+An empty `acts` list is a valid recipe — it means the domain was probed and needed no action. Yosoi stores it anyway so the next visit skips probing entirely.
+
+## Storage Location
+
+Recipes are stored in `.yosoi/a3nodes/`, one JSON file per domain:
+
+```
+.yosoi/
+  a3nodes/
+    a3node_shop_example_com.json
+    a3node_finance_yahoo_com.json
+```
+
+The `.yosoi/` directory is gitignored by default, so recipes stay local. If you want to share them across a team, the `selectors/` subdirectory is safe to commit; `a3nodes/` follows the same pattern — it's stable machine-readable data.
+
+## Enabling A3Node
+
+A3Node is experimental and opt-in. Pass `experimental_a3node=True` when constructing a browser fetcher:
+
+```python
+from yosoi.core.fetcher.waterfall import JSFetcher
+
+async with JSFetcher(experimental_a3node=True) as fetcher:
+    result = await fetcher.fetch('https://shop.example.com/catalog')
+```
+
+Or via the waterfall fetcher in the pipeline:
+
+```python
+from yosoi.core.fetcher import create_fetcher
+
+fetcher = create_fetcher('waterfall', experimental_a3node=True)
+async with fetcher:
+    await pipeline.process_url(url, fetcher=fetcher)
+```
+
+Without `experimental_a3node=True`, every browser fetch runs a fresh `DOMLoader` probe regardless of what's stored.
+
+## What Gets Stored
+
+After each successful `DOMLoader` run, the acts are written to `.yosoi/a3nodes/`. The `replay_count` increments on each successful replay; `last_replayed_at` updates with the timestamp.
+
+`A3NodeStorage` exposes the full recipe lifecycle:
+
+```python
+from yosoi.storage.a3node import A3NodeStorage, ActRecord
+
+storage = A3NodeStorage()
+
+# Load all cached recipes at startup
+recipes = storage.load_all()   # dict[str, A3Node]
+
+# Inspect a specific domain
+node = storage.load('shop.example.com')
+if node is not None:
+    print(node.acts)          # [ActRecord(kind='cookie', cycles=1), ...]
+    print(node.replay_count)  # 4
+    print(node.battle_tested) # True if replay_count >= 3
+
+# Delete a stale recipe
+storage.delete('shop.example.com')
+```
+
+## `A3Node` Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `domain` | `str` | Bare domain string (e.g. `'shop.example.com'`) |
+| `acts` | `list[ActRecord]` | Ordered list of recorded actions |
+| `discovered_at` | `str` | ISO timestamp of when this recipe was first recorded |
+| `replay_count` | `int` | Number of successful replays |
+| `last_replayed_at` | `str \| None` | ISO timestamp of the most recent replay |
+| `is_empty` | `bool` | True when `acts` is empty (no action needed) |
+| `battle_tested` | `bool` | True when `replay_count >= 3` |
+
+## FAQs
+
+<details>
+<summary>What happens when a site's page structure changes?</summary>
+
+A3Node replay runs the stored actions against the current DOM. If the DOM changed — the cookie banner selector is gone, the load-more button text changed — the action may silently succeed with zero effect (clicking a selector that no longer matches is a no-op in VoidCrawl). The content count comparison inside `ClickTrigger` will detect that content stopped growing and mark the trigger exhausted.
+
+If the site changed significantly, delete the recipe and let DOMLoader re-probe:
+
+```bash
+# Delete the cached recipe for one domain
+python -c "from yosoi.storage.a3node import A3NodeStorage; A3NodeStorage().delete('shop.example.com')"
+```
+
+Or delete all recipes and let them rebuild on next use:
+
+```bash
+rm .yosoi/a3nodes/*.json
+```
+
+</details>
+
+<details>
+<summary>Why is replay_count not incrementing?</summary>
+
+Replay only records via `storage.record_replay()` on the empty-recipe path today — the non-empty replay path runs a fresh probe instead of replaying acts (see note in `voiddriver.py`). This is a known limitation of the current experimental implementation. `battle_tested` is meaningful only for empty-recipe domains until full act-replay lands.
+
+</details>
+
+<details>
+<summary>Is A3Node safe to use in production?</summary>
+
+It is experimental. The replay path for non-empty recipes (domains that need action) falls back to a fresh DOMLoader probe rather than actually replaying the stored acts. The caching infrastructure is stable; the replay optimization is what's incomplete. Use it for the empty-recipe fast path (domains that need no action) and treat act replay as a preview.
+
+</details>
+
+<details>
+<summary>Can I pre-seed recipes manually?</summary>
+
+Yes. The file format is plain JSON. Create a file at `.yosoi/a3nodes/a3node_<domain>.json` with the shape shown above. Yosoi loads all files in that directory at fetcher startup via `A3NodeStorage.load_all()`.
+
+</details>
