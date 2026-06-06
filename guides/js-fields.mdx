@@ -1,0 +1,148 @@
+---
+title: JS Fields
+description: Use ys.js for browser-only values, with discovery, live verification, typed validation, and per-domain caching.
+faqs:
+  - q: When should I use ys.js?
+    a: >-
+      Use ys.js when the value only exists in the rendered browser: window globals,
+      runtime script tags, widgets, performance entries, or other JavaScript state.
+  - q: Does the LLM run on every scrape?
+    a: >-
+      No. For ys.js(description=...), Yosoi discovers and verifies the script once for
+      the domain and field, then reuses the cached script while the field description
+      still matches.
+  - q: How is the script verified?
+    a: >-
+      Yosoi runs the generated expression in the live tab. The result must be non-null
+      and must pass the contract field type and Pydantic validators before the script is
+      cached.
+  - q: Where is the script cache stored?
+    a: >-
+      Scripts are stored per domain in .yosoi/js_scripts/. Entries are keyed by field
+      name and reused only when the saved field description still matches.
+  - q: Can SimpleFetcher run JS discovery?
+    a: >-
+      No. JS discovery needs a live browser tab. Use headless, headful, or waterfall.
+---
+
+`ys.js` is for fields that are not present as stable text in the static HTML. It runs JavaScript in the live browser tab and merges the result into the extracted record.
+
+There are two modes:
+
+```python
+# Hand-authored. No LLM.
+signals: dict = ys.js("(() => ({ hasChat: !!window.Intercom }))()")
+
+# Discovery-driven. Yosoi writes and verifies the script once.
+signals: dict = ys.js(description="Detect chat widgets and loaded vendor scripts")
+```
+
+## What It Solves
+
+Use `ys.js` when the value lives in runtime browser state:
+
+- script URLs loaded after page render;
+- `window` globals installed by widgets;
+- performance resource entries;
+- iframe URLs and widget IDs;
+- feature flags or counters that are easier to read through JavaScript than CSS.
+
+Do not use it for normal text extraction. CSS selectors are cheaper and easier to audit when the value is already in the HTML.
+
+## Discovery Flow
+
+For `ys.js(description=...)`, Yosoi opens a browser tab and runs a short loop.
+
+1. Pre-probe the page for scripts, iframes, cookies, and relevant `window` keys.
+2. Ask the LLM for a JavaScript expression for the field.
+3. Evaluate the expression in the live tab.
+4. Validate the result through the contract field type.
+5. Retry with feedback when the result throws, returns nothing, or fails validation.
+6. Cache the verified script.
+
+The cached script is reused on later scrapes. No LLM call is needed after the first successful discovery.
+
+## Typed Validation
+
+The field's Python annotation is the oracle. Yosoi does not accept a script just because it returns "something".
+
+```python
+from typing import Annotated
+from pydantic import BeforeValidator
+import yosoi as ys
+
+
+def comma_int(value: object) -> int:
+    return int(str(value).replace(",", ""))
+
+
+class Place(ys.Contract):
+    review_count: Annotated[int, BeforeValidator(comma_int)] = ys.js(
+        description="Google Maps review count"
+    )
+```
+
+If the script returns `"1,234"`, the validator can coerce it to `1234`. If it returns a long blob of unrelated text, discovery rejects the script and tries again.
+
+## Cache Rules
+
+Scripts live under:
+
+```text
+.yosoi/
+  js_scripts/
+    js_example_com.json
+```
+
+The cache is per domain and per field. A script is reused only when the field description still matches. That means unrelated contract edits do not strand working scripts, but a changed description triggers rediscovery for that field.
+
+## Fetcher Requirement
+
+JS discovery needs a browser tab.
+
+```python
+records = await ys.scrape(
+    "https://example.com",
+    ContractWithJsFields,
+    fetcher_type="headless",
+)
+```
+
+Use `waterfall` if you want Yosoi to stay on plain HTTP for static pages and escalate only when needed.
+
+## FAQs
+
+<details>
+<summary>When should I use ys.js?</summary>
+
+Use it when the value only exists in the rendered browser, such as runtime scripts, widget globals, iframe URLs, or performance entries.
+
+</details>
+
+<details>
+<summary>Does the LLM run on every scrape?</summary>
+
+No. Discovery-driven JS fields cache a verified script per domain and field. Later scrapes reuse it.
+
+</details>
+
+<details>
+<summary>How is the script verified?</summary>
+
+Yosoi evaluates it in the live tab and validates the result through the contract field type and Pydantic validators.
+
+</details>
+
+<details>
+<summary>Where is the script cache stored?</summary>
+
+In `.yosoi/js_scripts/`, one file per domain, keyed by field name.
+
+</details>
+
+<details>
+<summary>Can SimpleFetcher run JS discovery?</summary>
+
+No. Use `headless`, `headful`, or `waterfall`.
+
+</details>

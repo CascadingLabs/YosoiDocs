@@ -112,8 +112,7 @@ class HybridContract(ys.Contract):
     price: float = ys.Price()                                # AI-discovered
     description: str = ys.Field(description='Item summary')  # AI-discovered
     category: str = ys.Field(
-        description='Product category',
-        hint='Usually in a breadcrumb or sidebar label',     # hint guides the AI
+        description='Product category, usually in a breadcrumb or sidebar label',
     )
 ```
 
@@ -123,14 +122,14 @@ class HybridContract(ys.Contract):
 | `title` | Pinned via `selector=` | Excluded from AI discovery |
 | `price` | AI-discovered | Type factory provides the description |
 | `description` | AI-discovered | `description` tells the AI what to look for |
-| `category` | AI-discovered | `hint` gives the AI extra guidance beyond the description |
+| `category` | AI-discovered | `description` carries the field meaning and any discovery guidance |
 
 ## FAQs
 
 <details>
-<summary>What is the difference between description and hint?</summary>
+<summary>What happened to hint?</summary>
 
-`description` tells the AI *what* the field contains (e.g. "Product category"). `hint` gives *where* or *how* to find it (e.g. "Usually in a breadcrumb or sidebar label"). Both are sent to the AI during discovery. Use `description` always; add `hint` when the field is ambiguous or in an unusual location.
+`hint` was removed. Put field meaning and discovery guidance in `description`, for example `description='Product category, usually in a breadcrumb or sidebar label'`.
 
 </details>
 
@@ -151,6 +150,6 @@ Extraction returns `None` for that field. Unlike AI-discovered selectors, pinned
 <details>
 <summary>Can I pin with XPath instead of CSS?</summary>
 
-For `root`, yes -- use `ys.xpath('//div[@class="item"]')`. For individual fields, `selector=` currently takes a CSS selector string. If you need XPath for a specific field, leave it for AI discovery and guide it with `hint`.
+For `root`, yes -- use `ys.xpath('//div[@class="item"]')`. For individual fields, `selector=` currently takes a CSS selector string. If you need XPath for a specific field, leave it for AI discovery and guide it with `description`.
 
 </details>

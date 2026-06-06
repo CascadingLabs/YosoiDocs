@@ -1,0 +1,174 @@
+---
+title: File Downloads
+description: Download files from a browser page with explicit opt-in, type allowlists, provenance, and annotation-directed output.
+faqs:
+  - q: Are downloads enabled by default?
+    a: >-
+      No. A run must pass allow_downloads=True, and each field or run must allow the
+      file type. If either gate is missing, Yosoi does not fetch the file.
+  - q: What does ys.File return?
+    a: >-
+      The field annotation decides the value. DownloadRecord returns provenance,
+      pathlib.Path returns the file path, bytes returns raw bytes, str returns decoded
+      text, and dict/list/Pydantic models parse CSV or JSON into typed data.
+  - q: Should I use trigger, href, url, or description?
+    a: >-
+      Use trigger for a button or link that starts a browser download. Use href when a
+      selector points at a stable link. Use url when you already know the direct file
+      URL. Use description when you want Yosoi to discover the trigger once and cache it.
+  - q: Is a downloaded file trusted?
+    a: >-
+      No. Treat the path as quarantine. Yosoi checks type allowlists, size caps, hashes,
+      and provenance, but downstream analysis should still treat the bytes as untrusted.
+  - q: Why does this require a browser fetcher?
+    a: >-
+      File fields are action fields. They run in the live tab so cookies, redirects,
+      signed URLs, and browser-only download buttons behave like they do for a user.
+references:
+  - title: EDGAR download example
+    url: https://github.com/CascadingLabs/Yosoi/blob/main/examples/edgar_download_example.py
+  - title: VoidCrawl file downloads
+    url: https://cascadinglabs.com/voidcrawl/guides/downloads/
+---
+
+Yosoi can surface files as contract fields. A file field is not a selector over HTML. It is an action that runs in the browser tab, downloads bytes, records provenance, and writes the resolved value into the extracted item.
+
+Use it for PDFs, CSV exports, JSON files, and browser-only download buttons where plain HTTP is not enough.
+
+## The Safety Model
+
+Downloads are default-deny.
+
+| Gate | Where | What it does |
+|---|---|---|
+| Run opt-in | `allow_downloads=True` | Allows this scrape run to download files at all. |
+| Type allowlist | `allowed_download_types` and `ys.File(allowed_types=...)` | Limits what file types can be accepted. |
+| Size cap | `max_download_bytes` or `ys.File(max_bytes=...)` | Rejects files over the configured byte limit. |
+| Provenance | `DownloadRecord` | Stores path, hash, size, content type, source URL, and timestamp. |
+
+Both the run and the field must agree. A field that allows CSV cannot download a PDF unless the run also allows PDF.
+
+## Basic CSV Example
+
+```python
+import asyncio
+import yosoi as ys
+
+
+class Dataset(ys.Contract):
+    title: str = ys.Title(description="Dataset title")
+    rows: list[dict] = ys.File(
+        trigger='a[href$=".csv"]',
+        allowed_types=["csv"],
+    )
+
+
+async def main() -> None:
+    records = await ys.scrape(
+        "https://example.com/data",
+        Dataset,
+        fetcher_type="headless",
+        allow_downloads=True,
+        allowed_download_types=["csv"],
+    )
+    print(records[0]["rows"][:3])
+
+
+asyncio.run(main())
+```
+
+`rows: list[dict]` is the important part. The annotation asks Yosoi to parse the downloaded CSV into rows. There is no separate `parse=` knob.
+
+## Output Shapes
+
+The field annotation decides what you get back.
+
+| Annotation | Returned value |
+|---|---|
+| `ys.DownloadRecord` | Provenance handle with path, hash, size, content type, and timestamp. |
+| `pathlib.Path` | Local file path. |
+| `bytes` | Raw bytes. |
+| `str` | Decoded text. |
+| `dict` or `list[dict]` | Parsed JSON or CSV data. |
+| `list[MyRow]` | Parsed rows validated through a Pydantic model. |
+| `MyModel` | Parsed JSON validated through that model. |
+
+Yosoi always creates a `DownloadRecord` internally. The annotation controls which view is placed in the output record.
+
+## Trigger Modes
+
+Exactly one source is required.
+
+```python
+# Click a selector and capture the browser download.
+report: ys.DownloadRecord = ys.File(trigger="button.download", allowed_types=["pdf"])
+
+# Read href from a selector and download that URL.
+report: ys.DownloadRecord = ys.File(href='a[href$=".pdf"]', allowed_types=["pdf"])
+
+# Download a known URL.
+report: ys.DownloadRecord = ys.File(url="https://example.com/report.pdf", allowed_types=["pdf"])
+
+# Ask Yosoi to discover the trigger and cache it.
+report: ys.DownloadRecord = ys.File(description="Download the annual report PDF", allowed_types=["pdf"])
+```
+
+Prefer `trigger` for signed URLs, generated exports, Google Drive style buttons, or anything that needs the page's current session. Prefer `href` or `url` only when the file URL is stable.
+
+## EDGAR Pattern
+
+The EDGAR example uses a browser tier, a CSV allowlist, and annotation-directed parsing:
+
+```python
+class EdgarDataset(ys.Contract):
+    title: str = ys.Title(description="The page or dataset title")
+    rows: list[dict] = ys.File(
+        trigger='a[href$=".csv"]',
+        allowed_types=["csv"],
+    )
+```
+
+Run it with:
+
+```bash
+uv run python examples/edgar_download_example.py
+```
+
+Yosoi stops at surfacing rows and provenance. Analysis belongs downstream, for example in DuckDB, SQLite, or an agent workflow.
+
+## FAQs
+
+<details>
+<summary>Are downloads enabled by default?</summary>
+
+No. Pass `allow_downloads=True` and allow the file type. Without both gates, nothing downloads.
+
+</details>
+
+<details>
+<summary>What does ys.File return?</summary>
+
+The field annotation decides the value. Use `ys.DownloadRecord` for provenance, `Path` for a path, `bytes` for raw bytes, `str` for text, and `dict` or `list[...]` for parsed CSV or JSON data.
+
+</details>
+
+<details>
+<summary>Should I use trigger, href, url, or description?</summary>
+
+Use `trigger` for browser actions, `href` for a selector that points at a stable link, `url` for a direct file URL, and `description` when you want Yosoi to discover and cache the trigger.
+
+</details>
+
+<details>
+<summary>Is a downloaded file trusted?</summary>
+
+No. Treat it as quarantined input. Yosoi gives you provenance and safety gates, not a guarantee that the file is safe to execute or open blindly.
+
+</details>
+
+<details>
+<summary>Why does this require a browser fetcher?</summary>
+
+File fields run in a live tab. Use `fetcher_type="headless"`, `fetcher_type="headful"`, or `fetcher_type="waterfall"`.
+
+</details>
