@@ -14,8 +14,8 @@ import yosoi as ys
 
 class Product(ys.Contract):
     title: str = ys.Title()
-    price: float = ys.Price(hint='Book price, always includes £ symbol')
-    rating: str = ys.Rating(hint="Star rating written as a word e.g. 'Three'")
+    price: float = ys.Price(description='Book price, always includes £ symbol')
+    rating: str = ys.Rating(description="Star rating written as a word e.g. 'Three'")
 ```
 
 ```python
@@ -34,8 +34,8 @@ For custom per-field transforms, define static methods inside a `Validators` cla
 ```python
 class BookStore(ys.Contract):
     title: str = ys.Title()
-    price: float = ys.Price(hint='Book price including currency symbol')
-    category: str = ys.Field(hint='Genre or category label')
+    price: float = ys.Price(description='Book price including currency symbol')
+    category: str = ys.Field(description='Genre or category label')
 
     class Validators:
         @staticmethod

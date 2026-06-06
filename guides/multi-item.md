@@ -34,7 +34,7 @@ class Product(ys.Contract):
     root = ys.css('article.product_pod')
 
     name: str = ys.Title()
-    price: float = ys.Price(hint='Includes £ symbol')
+    price: float = ys.Price(description='Includes £ symbol')
 ```
 
 `root` takes precedence over whatever the AI discovers. Use this when you want deterministic behaviour across runs.
@@ -46,7 +46,7 @@ class Product(ys.Contract):
 ```python
 class BookDetail(ys.Contract):
     title: str = ys.Title()
-    price: float = ys.Price(hint='Includes £ symbol')
+    price: float = ys.Price(description='Includes £ symbol')
     availability: str = ys.Field(description='Stock availability status')
 
 async for item in pipeline.scrape('https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html'):
@@ -66,7 +66,7 @@ pipeline = ys.Pipeline(config, contract=Product, output_format='json')
 <details>
 <summary>How does the AI determine the container selector?</summary>
 
-It analyzes the page HTML for repeating structural patterns. If the same element type appears multiple times with consistent child structure, it is treated as the container. Providing a `hint` on your fields improves accuracy.
+It analyzes the page HTML for repeating structural patterns. If the same element type appears multiple times with consistent child structure, it is treated as the container. Clear `description` text on your fields improves accuracy.
 
 </details>
 

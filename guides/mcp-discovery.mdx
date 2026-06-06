@@ -1,0 +1,115 @@
+---
+title: MCP Discovery
+description: Escalate selector discovery to a live VoidCrawl browser only when static discovery leaves required fields unmet.
+faqs:
+  - q: Is MCP discovery the default path?
+    a: >-
+      No. Static selector discovery is still the normal path. MCP discovery is the
+      escalation path when browser interaction is needed or required fields remain
+      unsatisfied.
+  - q: What does MCP discovery use under the hood?
+    a: >-
+      It uses VoidCrawl MCP tools to drive a live browser, inspect the page, click or
+      wait when needed, and return selectors or lessons that static HTML could not find.
+  - q: Should users choose static or MCP manually?
+    a: >-
+      Static discovery is the default. MCP can be forced for testing or advanced
+      workflows, but most runs should escalate only when evidence says static
+      discovery is not enough.
+  - q: Does AX replace MCP?
+    a: >-
+      No. AX snapshots give static discovery role and name hints from rendered pages.
+      MCP is still needed when content is interaction-gated or the browser has to act.
+  - q: Are MCP lessons the same as A3Node recipes?
+    a: >-
+      No. A3Node recipes stabilize a page during fetch. DiscoveryLesson and ReplayPlan
+      represent MCP-learned browser lessons. They are stored separately today because
+      they answer different questions.
+references:
+  - title: VoidCrawl MCP server
+    url: https://cascadinglabs.com/voidcrawl/guides/mcp-server/
+  - title: Accessibility Tree
+    url: https://cascadinglabs.com/voidcrawl/guides/accessibility-tree/
+---
+
+Yosoi starts cheap: static discovery over fetched HTML. When that cannot satisfy the contract, it can escalate to a live browser driven through VoidCrawl MCP.
+
+The direction is simple:
+
+1. Try static discovery.
+2. Verify required fields.
+3. Use AX hints when a rendered fetch produced them.
+4. Escalate to MCP only when evidence says static discovery is not enough.
+5. Save the working strategy for the domain and contract.
+
+## When MCP Helps
+
+MCP discovery is useful when the browser has to act:
+
+- cookie banners or modals block content;
+- "Load more" or pagination has to be clicked;
+- content appears only after network idle or a selector wait;
+- static selectors find the wrong semantic value;
+- the page exposes useful controls through accessibility roles rather than stable classes.
+
+MCP is not a replacement for static discovery. It is the expensive path for pages where static discovery cannot see enough.
+
+## AX Hints Before MCP
+
+Rendered fetches can carry an `AxSnapshot`: a compact accessibility tree summary with role and name targets. Static discovery can use that signal before a full MCP escalation.
+
+That matters on React or Tailwind pages where classes churn but button names remain stable. A `button "Load more"` hint can steer selector discovery without handing the whole page to an agent loop.
+
+AX does not click anything by itself. If the page needs actual interaction, MCP still owns that step.
+
+## Replay Boundaries
+
+Two replay systems exist today. They are stored separately because they answer different questions.
+
+| System | Purpose | Storage |
+|---|---|---|
+| A3Node / DOMLoader recipe | Fetch-time page stabilization. Replay cookie clears, load-more actions, and DOM settle work before capture. | `.yosoi/a3nodes/` |
+| DiscoveryLesson / ReplayPlan | MCP-learned browser lesson for discovery and future replay. | `.yosoi/lessons/` |
+
+Do not treat these formats as interchangeable just because both contain actions.
+
+## Default Behavior
+
+Static first is the default. MCP is used when required fields are still missing or semantic validation says the static result is wrong. MCP can also be forced for testing or advanced workflows.
+
+## FAQs
+
+<details>
+<summary>Is MCP discovery the default path?</summary>
+
+No. Static discovery is still the normal path. MCP is the escalation path.
+
+</details>
+
+<details>
+<summary>What does MCP discovery use under the hood?</summary>
+
+VoidCrawl MCP tools. The browser can inspect HTML, read the accessibility tree, wait for selectors, click controls, and return better selectors or lessons.
+
+</details>
+
+<details>
+<summary>Should users choose static or MCP manually?</summary>
+
+Static discovery is the default. MCP can be forced for testing or advanced workflows, but most runs should escalate only when evidence says static discovery is not enough.
+
+</details>
+
+<details>
+<summary>Does AX replace MCP?</summary>
+
+No. AX snapshots help static discovery understand rendered semantics. MCP is still needed when the page must be driven.
+
+</details>
+
+<details>
+<summary>Are MCP lessons the same as A3Node recipes?</summary>
+
+No. A3Node recipes stabilize fetches. Discovery lessons describe MCP-learned browser behavior. They are stored separately today because they answer different questions.
+
+</details>
