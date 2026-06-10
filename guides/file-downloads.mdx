@@ -4,7 +4,7 @@ description: Download files from a browser page with explicit opt-in, type allow
 faqs:
   - q: Are downloads enabled by default?
     a: >-
-      No. A run must pass allow_downloads=True, and each field or run must allow the
+      No. A run must enable DownloadPolicy(allow=True), and each field or run must allow the
       file type. If either gate is missing, Yosoi does not fetch the file.
   - q: What does ys.File return?
     a: >-
@@ -41,9 +41,9 @@ Downloads are default-deny.
 
 | Gate | Where | What it does |
 |---|---|---|
-| Run opt-in | `allow_downloads=True` | Allows this scrape run to download files at all. |
-| Type allowlist | `allowed_download_types` and `ys.File(allowed_types=...)` | Limits what file types can be accepted. |
-| Size cap | `max_download_bytes` or `ys.File(max_bytes=...)` | Rejects files over the configured byte limit. |
+| Run opt-in | `DownloadPolicy(allow=True)` | Allows this scrape run to download files at all. |
+| Type allowlist | `DownloadPolicy.allowed_types` and `ys.File(allowed_types=...)` | Limits what file types can be accepted. |
+| Size cap | `DownloadPolicy.max_bytes` or `ys.File(max_bytes=...)` | Rejects files over the configured byte limit. |
 | Provenance | `DownloadRecord` | Stores path, hash, size, content type, source URL, and timestamp. |
 
 Both the run and the field must agree. A field that allows CSV cannot download a PDF unless the run also allows PDF.
@@ -64,12 +64,17 @@ class Dataset(ys.Contract):
 
 
 async def main() -> None:
+    policy = ys.Policy.cascade(
+        ys.Policy.from_env(),
+        ys.Policy(
+            scrape=ys.ScrapePolicy(fetcher_type="headless"),
+            download=ys.DownloadPolicy(allow=True, allowed_types=("csv",)),
+        ),
+    )
     records = await ys.scrape(
         "https://example.com/data",
         Dataset,
-        fetcher_type="headless",
-        allow_downloads=True,
-        allowed_download_types=["csv"],
+        policy=policy,
     )
     print(records[0]["rows"][:3])
 
@@ -141,7 +146,7 @@ Yosoi stops at surfacing rows and provenance. Analysis belongs downstream, for e
 <details>
 <summary>Are downloads enabled by default?</summary>
 
-No. Pass `allow_downloads=True` and allow the file type. Without both gates, nothing downloads.
+No. Pass `DownloadPolicy(allow=True, allowed_types=(...))` and allow the file type on the field. Without both gates, nothing downloads.
 
 </details>
 
@@ -169,6 +174,6 @@ No. Treat it as quarantined input. Yosoi gives you provenance and safety gates, 
 <details>
 <summary>Why does this require a browser fetcher?</summary>
 
-File fields run in a live tab. Use `fetcher_type="headless"`, `fetcher_type="headful"`, or `fetcher_type="waterfall"`.
+File fields run in a live tab. Use `ScrapePolicy(fetcher_type="headless")`, `ScrapePolicy(fetcher_type="headful")`, or `ScrapePolicy(fetcher_type="waterfall")`.
 
 </details>

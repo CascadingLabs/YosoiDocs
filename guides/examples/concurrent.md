@@ -44,7 +44,7 @@ async def main():
     if not is_initialized():
         init_yosoi()
 
-    pipeline = ys.Pipeline(ys.auto_config(), contract=ys.NewsArticle)
+    pipeline = ys.Pipeline(policy=ys.Policy.from_env(), contract=ys.NewsArticle)
     results = await pipeline.process_urls(URLS, workers=3)
 
     print(f'{len(results["successful"])} succeeded, {len(results["failed"])} failed')

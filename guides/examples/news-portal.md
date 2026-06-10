@@ -37,7 +37,7 @@ class Article(ys.Contract):
     url: str = ys.Url()
 
 async def main():
-    pipeline = ys.Pipeline(ys.auto_config(), contract=Article)
+    pipeline = ys.Pipeline(policy=ys.Policy.from_env(), contract=Article)
 
     async for item in pipeline.scrape('https://qscrape.dev/l1/news'):
         print(item.get('title'), item.get('author'))

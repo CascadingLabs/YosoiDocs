@@ -116,7 +116,11 @@ Pinned selectors still go through verification and fallback logic at extraction 
 To discard the cache and run discovery from scratch:
 
 ```python
-pipeline = ys.Pipeline(config, contract=Article, force=True)
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(scrape=ys.ScrapePolicy(force=True)),
+)
+pipeline = ys.Pipeline(policy=policy, contract=Article)
 ```
 
 Or delete the domain file manually:

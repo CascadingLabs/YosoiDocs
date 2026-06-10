@@ -2,13 +2,13 @@
 title: Instrumenting Pipelines
 description: How to wire Langfuse credentials into Yosoi pipelines, override session ids, and propagate tags.
 faqs:
-  - q: When should I use TelemetryConfig vs env vars?
+  - q: When should I use TelemetryPolicy vs env vars?
     a: >-
       Env vars for CI, containers, and anything where credentials live in a
       secret manager (the default LANGFUSE_* names are picked up automatically).
-      TelemetryConfig for inline scripts where you want the keys explicit at the
-      call site, or for tests where you want to construct the config object
-      directly without touching the environment.
+      TelemetryPolicy for inline scripts where you want the secret references explicit
+      at the call site, or for tests where you want to construct the policy object
+      directly without touching the process environment.
   - q: Can I run multiple Pipeline objects in one process with different Langfuse projects?
     a: >-
       No. obs.configure(...) initializes a singleton client; the second
@@ -35,21 +35,22 @@ faqs:
 
 Yosoi pipelines are instrumented by default; the only thing you control is *where* the traces go.
 
-## Configure via `TelemetryConfig`
+## Configure via `TelemetryPolicy`
 
 ```python
-from yosoi import Pipeline, YosoiConfig
-from yosoi.core.configs import TelemetryConfig
+import yosoi as ys
 
-config = YosoiConfig(
-    llm=...,  # your LLM config
-    telemetry=TelemetryConfig(
-        langfuse_public_key='pk-...',
-        langfuse_secret_key='sk-...',
-        langfuse_host='http://localhost:3000',
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(
+        telemetry=ys.TelemetryPolicy(
+            langfuse_public_key_ref=ys.SecretRef.env('LANGFUSE_PUBLIC_KEY'),
+            langfuse_secret_key_ref=ys.SecretRef.env('LANGFUSE_SECRET_KEY'),
+            langfuse_host='http://localhost:3000',
+        ),
     ),
 )
-pipeline = Pipeline(config, contract=YourContract)
+pipeline = ys.Pipeline(policy=policy, contract=YourContract)
 ```
 
 Equivalent env-var setup (preferred for CI / container deploys):
@@ -109,7 +110,7 @@ Per-domain write serialization (hidden):
 | --- | --- | --- | --- |
 | `--session-id` / `YOSOI_SESSION_ID` | auto-generated UUID4 | `yosoi/utils/observability.py:process_session_id` | Group N CLI invocations under one Langfuse session (cross-session) |
 | `--workers` / `Pipeline.process_urls(workers=N)` | 1 | `yosoi/core/tasks.py` `Semaphore(max_workers)` | Inter-URL concurrency: N URLs in flight inside one process |
-| `DiscoveryConfig.max_concurrent` | 5 | `yosoi/core/discovery/orchestrator.py` `Semaphore(self._max_concurrent)` | Intra-URL per-field LLM fan-out cap |
+| `DiscoveryPolicy.max_concurrent` | 5 | `yosoi/core/discovery/orchestrator.py` `Semaphore(self._max_concurrent)` | Intra-URL per-field LLM fan-out cap |
 | `_domain_locks` (internal) | one lock per (sub)domain | `yosoi/core/tasks.py:28` | Serializes `save_selectors` writes (NOT the whole task) |
 
 ### Dimension 1: Cross-session orchestration
@@ -155,17 +156,14 @@ The kwargs path was chosen over W3C TraceContext middleware because (a) it works
 
 Inside one URL's `discover` stage, the orchestrator runs `asyncio.gather` of N field-discovery coroutines under an `asyncio.Semaphore(max_concurrent)`. With the default `max_concurrent=5` and a contract of 5 fields, all 5 LLM calls run in parallel; with a 10-field contract they run in waves of 5.
 
-Tune via `DiscoveryConfig.max_concurrent`:
+Tune via `DiscoveryPolicy.max_concurrent`:
 
 ```python
-from yosoi import Pipeline, YosoiConfig
-from yosoi.core.configs import DiscoveryConfig
-
-config = YosoiConfig(
-    llm=...,
-    discovery=DiscoveryConfig(max_concurrent=3),  # cap per-field LLM fan-out at 3
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(discovery=ys.DiscoveryPolicy(max_concurrent=3)),
 )
-pipeline = Pipeline(config, contract=YourContract)
+pipeline = ys.Pipeline(policy=policy, contract=YourContract)
 ```
 
 The orchestrator emits its `orchestrator_discover_selectors` span with `field_count` and `max_concurrent` attributes so reviewers see the planned fan-out width without timestamp arithmetic. When all fields are statically overridden, the span carries `bypass='all_overrides'` and the gather is skipped entirely.
@@ -202,9 +200,9 @@ LLM calls inside `discover` are instrumented natively by `pydantic-ai` and appea
 ## FAQs
 
 <details>
-<summary>When should I use TelemetryConfig vs env vars?</summary>
+<summary>When should I use TelemetryPolicy vs env vars?</summary>
 
-Env vars for CI, containers, and anything where credentials live in a secret manager (the default `LANGFUSE_*` names are picked up automatically). `TelemetryConfig` for inline scripts where you want the keys explicit at the call site, or for tests where you want to construct the config object directly without touching the environment.
+Env vars for CI, containers, and anything where credentials live in a secret manager. `Policy.from_env()` reads the default `LANGFUSE_*` names automatically. Use `TelemetryPolicy` for inline scripts where you want secret references explicit at the call site, or for tests where you want to construct the policy object directly without touching the process environment.
 
 </details>
 

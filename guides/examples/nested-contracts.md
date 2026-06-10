@@ -5,7 +5,7 @@ description: Use Contract-typed fields to model structured sub-sections of a pag
 
 Target: [Mountainhome Herald](https://qscrape.dev/l1/news) (QScrape L1)
 
-When a page has logically distinct sections — an article's body and its author byline, a product listing and its seller info — you can model each section as its own contract and nest one inside the other. Yosoi flattens nested fields to `{parent}_{child}` keys for discovery, so the LLM sees a single flat list of fields while your code keeps a clean, grouped structure.
+When a page has logically distinct sections -- an article's body and its author byline, a product listing and its seller info -- you can model each section as its own contract and nest one inside the other. Yosoi flattens nested fields to `{parent}_{child}` keys for discovery, so the LLM sees a single flat list of fields while your code keeps a clean, grouped structure.
 
 ## Defining a Nested Contract
 
@@ -47,7 +47,7 @@ The LLM discovers selectors for all five fields in one pass. During extraction, 
 
 ```python
 async def main():
-    pipeline = ys.Pipeline(ys.auto_config(), contract=Article)
+    pipeline = ys.Pipeline(policy=ys.Policy.from_env(), contract=Article)
 
     async for item in pipeline.scrape('https://qscrape.dev/l1/news'):
         print(item.get('title'))
@@ -115,6 +115,6 @@ If a pinned root doesn't match any element on the page, all child fields return 
 <details>
 <summary>Can I mix nested contracts with list fields?</summary>
 
-Yes. A field typed as `list[ChildContract]` works the same as `list[str]` — Yosoi extracts multiple instances of the child structure. Each instance is flattened for discovery and re-nested during extraction.
+Yes. A field typed as `list[ChildContract]` works the same as `list[str]` -- Yosoi extracts multiple instances of the child structure. Each instance is flattened for discovery and re-nested during extraction.
 
 </details>

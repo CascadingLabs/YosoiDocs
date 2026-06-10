@@ -50,7 +50,7 @@ import JsonLd from '../../../src/components/JsonLd.astro';
 			name: "What is the Chrome DevTools Protocol?",
 			acceptedAnswer: {
 				"@type": "Answer",
-				text: "CDP is the low-level protocol that Chrome exposes for programmatic control — navigating pages, executing JavaScript, capturing screenshots, and intercepting network requests. VoidCrawl speaks CDP natively from Rust.",
+				text: "CDP is the low-level protocol that Chrome exposes for programmatic control -- navigating pages, executing JavaScript, capturing screenshots, and intercepting network requests. VoidCrawl speaks CDP natively from Rust.",
 			},
 		},
 		{
@@ -70,15 +70,15 @@ Built on [chromiumoxide](https://github.com/mattsse/chromiumoxide) with a shared
 
 ## How Yosoi Uses VoidCrawl
 
-Yosoi uses VoidCrawl as its browser automation backend. When a page requires JavaScript rendering before selector discovery can begin, VoidCrawl handles the headless browsing — launching tabs, waiting for content, and returning the fully rendered DOM for Yosoi to analyse.
+Yosoi uses VoidCrawl as its browser automation backend. When a page requires JavaScript rendering before selector discovery can begin, VoidCrawl handles the headless browsing -- launching tabs, waiting for content, and returning the fully rendered DOM for Yosoi to analyse.
 
 ## Key Features
 
-- **Rust-native performance** — CDP commands run in a compiled Tokio runtime, not a Node.js subprocess.
-- **Async-first** — Every API is `async`/`await` from the ground up.
-- **Browser pool** — Reuse tabs across tasks with near-zero overhead.
-- **Built-in actions** — Click, type, scroll, screenshot, and evaluate JavaScript without extra dependencies.
-- **Docker-ready** — First-class support for headless and headful containers.
+- **Rust-native performance** -- CDP commands run in a compiled Tokio runtime, not a Node.js subprocess.
+- **Async-first** -- Every API is `async`/`await` from the ground up.
+- **Browser pool** -- Reuse tabs across tasks with near-zero overhead.
+- **Built-in actions** -- Click, type, scroll, screenshot, and evaluate JavaScript without extra dependencies.
+- **Docker-ready** -- First-class support for headless and headful containers.
 
 ## FAQs
 
@@ -99,7 +99,7 @@ Only when your target pages require JavaScript rendering. For static HTML pages,
 <details>
 <summary>What is the Chrome DevTools Protocol?</summary>
 
-CDP is the low-level protocol that Chrome exposes for programmatic control — navigating pages, executing JavaScript, capturing screenshots, and intercepting network requests. VoidCrawl speaks CDP natively from Rust.
+CDP is the low-level protocol that Chrome exposes for programmatic control -- navigating pages, executing JavaScript, capturing screenshots, and intercepting network requests. VoidCrawl speaks CDP natively from Rust.
 
 </details>
 

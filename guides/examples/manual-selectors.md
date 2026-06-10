@@ -29,7 +29,7 @@ class TaxRecord(ys.Contract):
     tax_due: float = ys.Price(description='Tax amount due')
 
 async def main():
-    pipeline = ys.Pipeline(ys.auto_config(), contract=TaxRecord)
+    pipeline = ys.Pipeline(policy=ys.Policy.from_env(), contract=TaxRecord)
 
     async for item in pipeline.scrape('https://qscrape.dev/l1/taxes'):
         print(item.get('owner'), item.get('assessed_value'))

@@ -30,7 +30,7 @@ class Match(ys.Contract):
     date: str = ys.Datetime()
 
 async def main():
-    pipeline = ys.Pipeline(ys.auto_config(), contract=Match)
+    pipeline = ys.Pipeline(policy=ys.Policy.from_env(), contract=Match)
 
     async for item in pipeline.scrape('https://qscrape.dev/l1/scoretap'):
         print(item.get('teams'), item.get('score'))

@@ -23,7 +23,7 @@ async def main() -> None:
     if not is_initialized():
         init_yosoi()
 
-    config = ys.auto_config()  # picks up YOSOI_MODEL / provider keys from .env
+    policy = ys.Policy.from_env()  # picks up YOSOI_MODEL / provider keys from .env
     pipeline = Pipeline(config, contract=ys.NewsArticle)
 
     results = await pipeline.process_urls(URLS, workers=3)
@@ -44,7 +44,7 @@ asyncio.run(main())
 
 ## Notes
 
-- When `workers > 1`, Yosoi dispatches each URL as an independent task via a TaskIQ<sup>[◑](#ref-3)</sup> in-memory broker. Workers run as concurrent asyncio<sup>[○](#ref-2)</sup> tasks inside the same event loop — no separate processes or external queue required.
+- When `workers > 1`, Yosoi dispatches each URL as an independent task via a TaskIQ<sup>[◑](#ref-3)</sup> in-memory broker. Workers run as concurrent asyncio<sup>[○](#ref-2)</sup> tasks inside the same event loop -- no separate processes or external queue required.
 - Selector discovery (the one-time LLM call) is also parallelised across workers.
 - Cached domains skip discovery entirely; only extraction runs.
 - `workers=1` (the default) runs sequentially with no progress table.
