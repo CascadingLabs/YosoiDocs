@@ -13,6 +13,11 @@ description: Environment variables and runtime options.
 | `CEREBRAS_KEY` | One of these | Cerebras<sup>[◇](#ref-4)</sup> API key |
 | `OPENROUTER_KEY` | One of these | OpenRouter<sup>[★](#ref-5)</sup> API key |
 | `YOSOI_MODEL` | Optional | Default model in `provider:model` format (e.g. `groq:llama-3.3-70b-versatile`). Read by `Policy.from_env()`. |
+| `YOSOI_FORCE` | Optional | Truthy value forces rediscovery instead of replaying the cached contract. Read into `ScrapePolicy.force`. |
+| `YOSOI_FETCHER_TYPE` | Optional | Default fetch tier: `auto`, `simple`, `headless`, `headful`, `waterfall`. Read into `ScrapePolicy.fetcher_type`. |
+| `YOSOI_SELECTOR_LEVEL` | Optional | Default selector strategy (e.g. `css`, `xpath`). Read into `ScrapePolicy.selector_level`. |
+| `YOSOI_DISCOVERY_MODE` | Optional | Discovery mode: `auto`, `static`, `mcp`. Read into `DiscoveryPolicy.mode`. |
+| `YOSOI_CROSS_ORIGIN_DOM` | Optional | Truthy value opts browser fetchers into cross-origin DOM access (see [Cross-origin DOM access](#cross-origin-dom-access)). Read into `ScrapePolicy.cross_origin_dom`. Default off. |
 | `YOSOI_LOG_LEVEL` | Optional | Logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `ALL` (default: `DEBUG`) |
 | `YOSOI_SESSION_ID` | Optional | Override the auto-generated Langfuse session id for this process. Equivalent to the `--session-id` CLI flag. |
 | `LANGFUSE_PUBLIC_KEY` | Optional | Langfuse<sup>[⬡](#ref-6)</sup> project public key. Enables observability when set together with the secret key. |
@@ -75,6 +80,47 @@ rows = await ys.scrape(url, YourContract, policy=policy)
 ```
 
 `Policy.from_env()` reads the environment variables above, including `YOSOI_MODEL`, `YOSOI_FORCE`, `YOSOI_DISCOVERY_MODE`, `YOSOI_ATOM_READS`, `YOSOI_ATOM_TRUST`, and Langfuse settings. `Policy.cascade(...)` merges layers from lowest to highest precedence, so a call-site policy can override env defaults without mutating global state.
+
+### Providing the API key
+
+There are two ways to give a model its key, and **neither stores the raw secret in the policy** -- it never appears in `model_dump()`, `repr()`, or `policy_hash`:
+
+- **Env-resolved (recommended for deployments)** -- point at an environment variable with `ys.SecretRef.env('GROQ_KEY')`. The key is read only when you call `resolve_run_spec()`:
+
+  ```python
+  policy = ys.Policy(
+      model=ys.ModelPolicy.from_string(
+          'groq:llama-3.3-70b-versatile',
+          credential_ref=ys.SecretRef.env('GROQ_KEY'),
+      ),
+  )
+  spec = policy.resolve_run_spec()  # reads GROQ_KEY from os.environ
+  ```
+
+- **Direct (for a key you already hold)** -- pass `api_key=` to `from_string(...)` (or any provider helper such as `ys.groq(...)`). It is kept runtime-only, so `resolve_run_spec()` needs no environment mapping:
+
+  ```python
+  policy = ys.Policy(
+      model=ys.ModelPolicy.from_string('groq:llama-3.3-70b-versatile', api_key=my_key),
+  )
+  spec = policy.resolve_run_spec()  # no env dict needed
+  ```
+
+  Passing a raw `{'GROQ_KEY': ...}` mapping to `resolve_run_spec()` is reserved for tests and tooling that need to resolve against a synthetic environment -- prefer one of the two forms above in application code.
+
+### Cross-origin DOM access
+
+By default, browser fetchers cannot run JavaScript inside a cross-origin iframe that Chrome isolates out-of-process (e.g. an embedded `google.com` frame). Set `ScrapePolicy.cross_origin_dom=True` (or the `YOSOI_CROSS_ORIGIN_DOM` env var) to launch Chrome with site-isolation field trials disabled so frame-scoped evaluation can reach those origins. Requires VoidCrawl ≥ 0.3.5.
+
+```python
+policy = ys.Policy(
+    model=ys.ModelPolicy.from_string('groq:llama-3.3-70b-versatile', api_key=my_key),
+    scrape=ys.ScrapePolicy(fetcher_type='headless', cross_origin_dom=True),
+)
+rows = await ys.scrape(url, YourContract, policy=policy)
+```
+
+This is **opt-in and off by default** because it weakens the browser's security isolation for the whole session -- only enable it when you actually need to read or drive an isolated cross-origin frame. The simple (non-browser) tier ignores it.
 
 ## Discovery concurrency
 

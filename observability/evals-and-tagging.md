@@ -64,23 +64,26 @@ import asyncio
 from pydantic_ai import Agent
 from pydantic_ai.models.test import TestModel
 
-from yosoi.core.discovery.config import LLMConfig
+import yosoi as ys
 from yosoi.core.pipeline import Pipeline
 from yosoi.models.defaults import NewsArticle
 from yosoi.utils import observability as obs
 
 
 async def run() -> None:
-    # Deterministic LLM stub (no provider key, no cost).
-    llm_config = LLMConfig(
-        provider='groq',
-        model_name='llama-3.3-70b-versatile',
-        api_key='unused-test-key',
-        temperature=0.0,
+    # Deterministic LLM stub (the real model is overridden with TestModel below, so the
+    # key is a placeholder). api_key= is held runtime-only and never serialized, so
+    # resolve_run_spec() needs no environment mapping.
+    policy = ys.Policy(
+        model=ys.ModelPolicy.from_string(
+            'groq:llama-3.3-70b-versatile', api_key='unused-eval-stub', temperature=0.0
+        ),
+        output=ys.OutputPolicy(quiet=True),
     )
+    spec = policy.resolve_run_spec()
     Agent.instrument_all()  # so pydantic-ai spans land in Langfuse via OTel.
 
-    pipeline = Pipeline(llm_config, contract=NewsArticle, quiet=True)
+    pipeline = Pipeline(spec.llm_config, contract=NewsArticle, policy=policy)
 
     # Override the inner agent's model with TestModel for deterministic evals.
     inner_agent = pipeline.discovery._agent._agent
