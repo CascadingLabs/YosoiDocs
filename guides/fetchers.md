@@ -1,6 +1,6 @@
 ---
 title: Fetchers
-description: Choose how Yosoi retrieves HTML — plain HTTP, headless Chrome, or an adaptive waterfall.
+description: Choose how Yosoi retrieves HTML -- plain HTTP, headless Chrome, or an adaptive waterfall.
 ---
 
 Yosoi fetches HTML before selector discovery and extraction. Every fetch goes through an `HTMLFetcher` instance. The default is a fast plain-HTTP client; for JavaScript-heavy pages you can escalate to a browser-backed fetcher or use the adaptive waterfall that handles both.
@@ -16,15 +16,14 @@ Yosoi fetches HTML before selector discovery and extraction. Every fetch goes th
 
 ### Simple Fetcher (default)
 
-Sends HTTP requests with randomized user-agent headers and realistic browser fingerprints. Works for the majority of sites — any page where the content is present in the server response without needing JavaScript to render.
+Sends HTTP requests with randomized user-agent headers and realistic browser fingerprints. Works for the majority of sites -- any page where the content is present in the server response without needing JavaScript to render.
 
 ```bash
 uv run yosoi --url https://qscrape.dev/l1/news --contract NewsArticle
 ```
 
 ```python
-async for item in pipeline.scrape(url):  # fetcher_type defaults to 'simple'
-    ...
+rows = await ys.scrape(url, Contract, policy=ys.Policy.from_env())
 ```
 
 When to use: static sites, news portals, most product catalogues, anything where `Cmd+U` / `Ctrl+U` in a browser shows the content you want to extract.
@@ -46,15 +45,18 @@ Tries three tiers in order and stops at the first that succeeds:
    └── return result regardless (best-effort final tier)
 ```
 
-The winning tier for each domain is cached in `.yosoi/fetch/`. On the next run, the waterfall is skipped entirely — Yosoi jumps straight to the cached tier.
+The winning tier for each domain is cached in `.yosoi/fetch/`. On the next run, the waterfall is skipped entirely -- Yosoi jumps straight to the cached tier.
 
 ```bash
 uv run yosoi --url https://finance.yahoo.com --contract NewsArticle --fetcher waterfall
 ```
 
 ```python
-async for item in pipeline.scrape(url, fetcher_type='waterfall'):
-    ...
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(scrape=ys.ScrapePolicy(fetcher_type='waterfall')),
+)
+rows = await ys.scrape(url, Contract, policy=policy)
 ```
 
 When to use: mixed workloads, sites you haven't tested yet, or anywhere you want Yosoi to adapt without configuring which tier to use.
@@ -76,7 +78,7 @@ See [DOMLoader](/guides/dom-loader/) for how the page-loading behavior tree work
 
 ## Detecting Which Tier Is Needed
 
-You don't need to figure this out yourself when using the waterfall — it runs a HEAD probe before the first full fetch to check for JavaScript signals:
+You don't need to figure this out yourself when using the waterfall -- it runs a HEAD probe before the first full fetch to check for JavaScript signals:
 
 - Content-Length under 5,000 bytes on an HTML response
 - Framework headers (`X-Powered-By: Next.js`, server headers for Vercel/Netlify)
@@ -133,7 +135,7 @@ async with create_fetcher('waterfall') as fetcher:
         await pipeline.process_url(url, fetcher=fetcher)
 ```
 
-`process_urls()` already does this internally — it creates one shared fetcher for the entire batch.
+`process_urls()` already does this internally -- it creates one shared fetcher for the entire batch.
 
 ## FAQs
 

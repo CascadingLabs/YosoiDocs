@@ -17,7 +17,7 @@ class Product(ys.Contract):
     price: float = ys.Price()
     rating: str = ys.Rating()
 
-pipeline = ys.Pipeline(ys.auto_config(), contract=Product)
+pipeline = ys.Pipeline(policy=ys.Policy.from_env(), contract=Product)
 
 async for item in pipeline.scrape('https://books.toscrape.com'):
     print(item.get('name'), item.get('price'))

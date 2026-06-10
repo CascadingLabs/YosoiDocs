@@ -40,7 +40,7 @@ faqs:
       after the first 5 field tasks release semaphore slots. With
       max_concurrent=5 and a 6-field contract, that's the structural reason you
       see 5 overlapping spans plus 1 trailing one in live traces. Raise
-      DiscoveryConfig.max_concurrent if you want the root field to overlap too.
+      DiscoveryPolicy.max_concurrent if you want the root field to overlap too.
 ---
 
 Tags are how you carve out point-in-time views in Langfuse. Yosoi sets two tags on every session out of the box (`yosoi`, `cli`/`script`) plus the (sub)domain tag on every trace. Beyond that, you attach your own tags from eval workflows so smoke runs, regression sweeps, and integration runs are filterable independently.
@@ -303,7 +303,7 @@ Two things to check: (1) `Agent.instrument_all()` must run before any `Pipeline(
 <details>
 <summary>Why does field_agent[root] always look non-overlapping?</summary>
 
-It's added to the discovery gather list as a separate task and only runs after the first 5 field tasks release semaphore slots. With `max_concurrent=5` and a 6-field contract, that's the structural reason you see 5 overlapping spans plus 1 trailing one in live traces. Raise `DiscoveryConfig.max_concurrent` if you want the root field to overlap too.
+It's added to the discovery gather list as a separate task and only runs after the first 5 field tasks release semaphore slots. With `max_concurrent=5` and a 6-field contract, that's the structural reason you see 5 overlapping spans plus 1 trailing one in live traces. Raise `DiscoveryPolicy.max_concurrent` if you want the root field to overlap too.
 
 </details>
 

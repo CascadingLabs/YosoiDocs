@@ -12,12 +12,12 @@ description: Environment variables and runtime options.
 | `OPENAI_KEY` | One of these | OpenAI<sup>[◑](#ref-3)</sup> API key |
 | `CEREBRAS_KEY` | One of these | Cerebras<sup>[◇](#ref-4)</sup> API key |
 | `OPENROUTER_KEY` | One of these | OpenRouter<sup>[★](#ref-5)</sup> API key |
-| `YOSOI_MODEL` | Optional | Default model in `provider:model` format (e.g. `groq:llama-3.3-70b-versatile`) |
+| `YOSOI_MODEL` | Optional | Default model in `provider:model` format (e.g. `groq:llama-3.3-70b-versatile`). Read by `Policy.from_env()`. |
 | `YOSOI_LOG_LEVEL` | Optional | Logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `ALL` (default: `DEBUG`) |
 | `YOSOI_SESSION_ID` | Optional | Override the auto-generated Langfuse session id for this process. Equivalent to the `--session-id` CLI flag. |
 | `LANGFUSE_PUBLIC_KEY` | Optional | Langfuse<sup>[⬡](#ref-6)</sup> project public key. Enables observability when set together with the secret key. |
 | `LANGFUSE_SECRET_KEY` | Optional | Langfuse project secret key. |
-| `LANGFUSE_BASE_URL` | Optional | Langfuse host. Defaults to `https://cloud.langfuse.com`. Set to `http://localhost:3000` for the bundled self-hosted stack. |
+| `LANGFUSE_BASE_URL` | Optional | Langfuse host. Defaults to `https://cloud.langfuse.com`. Set to `http://localhost:3000` for the bundled self-hosted stack. Read into `TelemetryPolicy`. |
 
 These are the most commonly used provider keys. Yosoi supports [25+ providers](/reference/helpers/) -- each with its own environment variable. You only need one.
 
@@ -38,30 +38,61 @@ Yosoi stores all state in `.yosoi/` in your project root (gitignored by default)
 
 Yosoi ships first-class [Langfuse](https://langfuse.com)<sup>[⬡](#ref-6)</sup> integration. Set `LANGFUSE_PUBLIC_KEY` and `LANGFUSE_SECRET_KEY` (plus optional `LANGFUSE_BASE_URL`) to start exporting traces. Without them, observability is a silent no-op and the pipeline runs unchanged.
 
-The mapping is deliberate: **one process = one session, one URL = one trace, the (sub)domain = the user_id**. So filtering by user in the Langfuse UI gives you "everything we've ever scraped on `shop.example.com`", and filtering by session narrows it to a single run. Subdomains are intentionally distinct — `shop.example.com` does not roll up into `example.com`.
+The mapping is deliberate: **one process = one session, one URL = one trace, the (sub)domain = the user_id**. So filtering by user in the Langfuse UI gives you "everything we've ever scraped on `shop.example.com`", and filtering by session narrows it to a single run. Subdomains are intentionally distinct -- `shop.example.com` does not roll up into `example.com`.
 
 For the full picture (boot script, Python config, span tree, eval tagging) see the [Observability section](/observability/).
 
-## Discovery concurrency
+## Policy
 
-Per-field LLM fan-out within one URL is capped by an `asyncio.Semaphore`. The default cap is 5; tune it via `DiscoveryConfig`:
+`ys.Policy` is the public configuration surface. It is a frozen, serializable tree that can include model selection, scrape behavior, discovery settings, telemetry, output formats, downloads, crawl policy, and atom trust settings. Raw secrets are not stored in the policy artifact. Use `ys.SecretRef.env(...)` to point at a secret and let Yosoi resolve it into a runtime-only `ResolvedRunSpec`.
 
 ```python
-from yosoi import Pipeline, YosoiConfig
-from yosoi.core.configs import DiscoveryConfig
+import yosoi as ys
 
-config = YosoiConfig(
-    llm=...,
-    discovery=DiscoveryConfig(max_concurrent=3),
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(
+        model=ys.ModelPolicy.from_string(
+            'groq:llama-3.3-70b-versatile',
+            credential_ref=ys.SecretRef.env('GROQ_KEY'),
+        ),
+        scrape=ys.ScrapePolicy(
+            force=False,
+            fetcher_type='auto',
+            selector_level=ys.SelectorLevel.XPATH,
+        ),
+        discovery=ys.DiscoveryPolicy(max_concurrent=3),
+        telemetry=ys.TelemetryPolicy(
+            langfuse_public_key_ref=ys.SecretRef.env('LANGFUSE_PUBLIC_KEY'),
+            langfuse_secret_key_ref=ys.SecretRef.env('LANGFUSE_SECRET_KEY'),
+            langfuse_host='http://localhost:3000',
+        ),
+        output=ys.OutputPolicy(formats=('jsonl',), quiet=False),
+    ),
 )
-pipeline = Pipeline(config, contract=YourContract)
+
+rows = await ys.scrape(url, YourContract, policy=policy)
+```
+
+`Policy.from_env()` reads the environment variables above, including `YOSOI_MODEL`, `YOSOI_FORCE`, `YOSOI_DISCOVERY_MODE`, `YOSOI_ATOM_READS`, `YOSOI_ATOM_TRUST`, and Langfuse settings. `Policy.cascade(...)` merges layers from lowest to highest precedence, so a call-site policy can override env defaults without mutating global state.
+
+## Discovery concurrency
+
+Per-field LLM fan-out within one URL is capped by an `asyncio.Semaphore`. The default cap is 5; tune it with `DiscoveryPolicy`:
+
+```python
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(discovery=ys.DiscoveryPolicy(max_concurrent=3)),
+)
+pipeline = ys.Pipeline(policy=policy, contract=YourContract)
 ```
 
 | Field | Type | Range | Default | Effect |
 | --- | --- | --- | --- | --- |
-| `DiscoveryConfig.max_concurrent` | `int` | 1–50 | 5 | Caps how many per-field LLM calls fan out concurrently within one URL via `asyncio.gather` + `asyncio.Semaphore`. Increase for higher throughput on small contracts; decrease if you're hitting LLM rate limits or want more deterministic ordering. |
+| `DiscoveryPolicy.max_concurrent` | `int` | 1-50 | 5 | Caps how many per-field LLM calls fan out concurrently within one URL via `asyncio.gather` + `asyncio.Semaphore`. Increase for higher throughput on small contracts; decrease if you're hitting LLM rate limits or want more deterministic ordering. |
 
-For the four-dimension concurrency model (cross-session / inter-URL / intra-URL / per-domain write), see [Instrumenting pipelines](/observability/instrumenting-pipelines/) — Concurrency.
+For the four-dimension concurrency model (cross-session / inter-URL / intra-URL / per-domain write), see [Instrumenting pipelines](/observability/instrumenting-pipelines/) -- Concurrency.
 
 ## FAQs
 

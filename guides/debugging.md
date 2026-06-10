@@ -14,7 +14,11 @@ uv run yosoi --url https://qscrape.dev --contract Product --debug
 ```
 
 ```python
-pipeline = ys.Pipeline(ys.auto_config(), contract=Product, debug=True)
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(output=ys.OutputPolicy(debug_html=True)),
+)
+pipeline = ys.Pipeline(policy=policy, contract=Product)
 ```
 
 Snapshots are saved to `.yosoi/debug_html/` as plain HTML files, named by domain and timestamp. Open them in a browser to see exactly what the LLM was working with.
@@ -59,7 +63,11 @@ uv run yosoi --url https://qscrape.dev --contract Product --force
 ```
 
 ```python
-pipeline = ys.Pipeline(ys.auto_config(), contract=Product, force=True)
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(scrape=ys.ScrapePolicy(force=True)),
+)
+pipeline = ys.Pipeline(policy=policy, contract=Product)
 ```
 
 You can also manually delete the cache file from `.yosoi/selectors/` and run again.
@@ -112,8 +120,8 @@ class Product(ys.Contract):
 When something breaks, work through this in order:
 
 1. Run with `--debug` and inspect `.yosoi/debug_html/`
-2. Open the target URL in a browser — is the content visible without JavaScript?
-3. Check `.yosoi/selectors/` — do the cached selectors look reasonable?
+2. Open the target URL in a browser -- is the content visible without JavaScript?
+3. Check `.yosoi/selectors/` -- do the cached selectors look reasonable?
 4. Try `--force` to re-discover from scratch
 5. Pin the `root` if multi-item extraction is off
 6. Switch to a larger-context model if the page is very large

@@ -101,10 +101,14 @@ The cache is per domain and per field. A script is reused only when the field de
 JS discovery needs a browser tab.
 
 ```python
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(scrape=ys.ScrapePolicy(fetcher_type="headless")),
+)
 records = await ys.scrape(
     "https://example.com",
     ContractWithJsFields,
-    fetcher_type="headless",
+    policy=policy,
 )
 ```
 

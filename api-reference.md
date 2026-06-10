@@ -30,7 +30,7 @@ Base class for user-defined scraping contracts.
 
 Return {field_name: action_config} for fields annotated with yosoi_action.
 
-These fields are excluded from CSS selector discovery and verification —
+These fields are excluded from CSS selector discovery and verification --
 their values are captured by running the action during fetch.
 
 ### `coerce_field` <a href="https://github.com/CascadingLabs/Yosoi/blob/0.0.2a19/yosoi/models/contract.py#L172" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
@@ -47,7 +47,7 @@ type or validator failure.
 
 This is the single per-field value oracle reused by JS discovery (reject a
 script whose output the declared type rejects) and scrape-time enforcement,
-so a ``ys.js()`` field is validated by its declared type — not a heuristic.
+so a ``ys.js()`` field is validated by its declared type -- not a heuristic.
 
 ### `define` <a href="https://github.com/CascadingLabs/Yosoi/blob/0.0.2a19/yosoi/models/contract.py#L456" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
@@ -64,7 +64,7 @@ Return the set of flattened field names used for discovery and cache keys.
 Non-Contract fields keep their original name; nested Contract fields are
 expanded to ``{parent}_{child}`` keys.  This matches the key format used
 by snapshots, ``field_descriptions()``, and ``get_selector_overrides()``.
-Action fields (yosoi_action) are excluded — they have no CSS selector.
+Action fields (yosoi_action) are excluded -- they have no CSS selector.
 
 ### `field_default` <a href="https://github.com/CascadingLabs/Yosoi/blob/0.0.2a19/yosoi/models/contract.py#L212" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
@@ -103,14 +103,14 @@ Return a markdown table documenting all contract fields and their config.
 `get_root() -> SelectorEntry | None`
 
 Return the root selector if explicitly set on the contract class.
-**Returns:** `SelectorEntry | None` — SelectorEntry for the repeating container element, or None.
+**Returns:** `SelectorEntry | None` -- SelectorEntry for the repeating container element, or None.
 
 ### `get_selector_overrides` <a href="https://github.com/CascadingLabs/Yosoi/blob/0.0.2a19/yosoi/models/contract.py#L361" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
 `get_selector_overrides() -> dict[str, dict[str, str]]`
 
 Return selector overrides defined on fields via ``yosoi_selector``.
-**Returns:** `dict[str, dict[str, str]]` — Mapping of field name to selector dict (e.g. ``{"primary": "h1.title"}``). `dict[str, dict[str, str]]` — Nested contract overrides use flat ``{parent}_{child}`` keys.
+**Returns:** `dict[str, dict[str, str]]` -- Mapping of field name to selector dict (e.g. ``{"primary": "h1.title"}``). `dict[str, dict[str, str]]` -- Nested contract overrides use flat ``{parent}_{child}`` keys.
 
 ### `is_grouped` <a href="https://github.com/CascadingLabs/Yosoi/blob/0.0.2a19/yosoi/models/contract.py#L451" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
@@ -138,7 +138,7 @@ Generate a Pydantic model mapping each contract field to FieldSelectors.
 
 This ensures that the LLM agent knows exactly which fields to find selectors for,
 preserving any descriptions or hints provided in the contract.
-Fields with a ``yosoi_selector`` override are excluded — their selectors are
+Fields with a ``yosoi_selector`` override are excluded -- their selectors are
 provided directly and do not require AI discovery.
 Nested Contract-typed fields are expanded to flat ``{parent}_{child}`` entries.
 
@@ -283,14 +283,14 @@ Resolution order:
 4. Groq default fallback
 **Args:**
 
-- `model` `str | None` — Model string in ``provider:model-name`` format, or None.
-- `debug` `bool` — Whether to enable debug HTML saving.
+- `model` `str | None` -- Model string in ``provider:model-name`` format, or None.
+- `debug` `bool` -- Whether to enable debug HTML saving.
 
-**Returns:** `YosoiConfig` — Validated YosoiConfig.
+**Returns:** `YosoiConfig` -- Validated YosoiConfig.
 
 **Raises:**
 
-- `ValueError` — On configuration errors (bad model format, no API key, etc.).
+- `ValueError` -- On configuration errors (bad model format, no API key, etc.).
 
 ## `claude_sdk` <a href="https://github.com/CascadingLabs/Yosoi/blob/0.0.2a19/yosoi/__init__.py#L78" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
@@ -316,29 +316,29 @@ Declare a contract field extracted by a JS program run in the live browser tab.
 
 Two modes:
 
-**Hand-authored** — provide ``script``. The expression is evaluated as-is
+**Hand-authored** -- provide ``script``. The expression is evaluated as-is
 on every fetch. No LLM involved::
 
     signals: dict = ys.js("(() => ({ has_alita: !!window.__alita__ }))()")
 
-**Discovery-driven** — omit ``script``, provide ``description``. Yosoi's
+**Discovery-driven** -- omit ``script``, provide ``description``. Yosoi's
 :class:`JsDiscoveryOrchestrator` writes and verifies the script once per
 domain, then caches it (CAS-92)::
 
     signals: dict = ys.js(description="Detect Alita embed and competitor widgets")
 **Args:**
 
-- `script` `str | None` — JavaScript IIFE to evaluate. ``None`` triggers JS discovery.
-- `description` `str | None` — Human-readable description used by the LLM during discovery.
+- `script` `str | None` -- JavaScript IIFE to evaluate. ``None`` triggers JS discovery.
+- `description` `str | None` -- Human-readable description used by the LLM during discovery.
 Required when ``script`` is ``None``.
-- `**kwargs` `Any` — Additional arguments forwarded to ``pydantic.Field``
+- `**kwargs` `Any` -- Additional arguments forwarded to ``pydantic.Field``
 (e.g. ``default``, ``description`` as a pydantic field description).
 
-**Returns:** `Any` — A pydantic FieldInfo with ``yosoi_action`` metadata.
+**Returns:** `Any` -- A pydantic FieldInfo with ``yosoi_action`` metadata.
 
 **Raises:**
 
-- `ValueError` — When neither ``script`` nor ``description`` is provided.
+- `ValueError` -- When neither ``script`` nor ``description`` is provided.
 
 ## `jsonld` <a href="https://github.com/CascadingLabs/Yosoi/blob/0.0.2a19/yosoi/__init__.py#L38" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
@@ -351,14 +351,14 @@ Required when ``script`` is ``None``.
 Load URLs from a file (JSON, plain text, CSV, Excel, Parquet, or Markdown).
 **Args:**
 
-- `filepath` `str` — Path to file containing URLs.
+- `filepath` `str` -- Path to file containing URLs.
 
-**Returns:** `list[str]` — List of URL strings.
+**Returns:** `list[str]` -- List of URL strings.
 
 **Raises:**
 
-- `FileNotFoundError` — If file does not exist.
-- `ValueError` — If file format requires unavailable dependencies.
+- `FileNotFoundError` -- If file does not exist.
+- `ValueError` -- If file format requires unavailable dependencies.
 
 ## `opencode` <a href="https://github.com/CascadingLabs/Yosoi/blob/0.0.2a19/yosoi/__init__.py#L93" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
@@ -374,7 +374,7 @@ Load URLs from a file (JSON, plain text, CSV, Excel, Parquet, or Markdown).
 
 Decorator that registers a coercion function and returns a Field factory.
 
-The decorated function becomes the Field factory — its name is what you use
+The decorated function becomes the Field factory -- its name is what you use
 in a Contract.  The coercion logic is stored internally in the registry.
 
 Decorator kwargs define the config schema:
@@ -383,11 +383,11 @@ Decorator kwargs define the config schema:
   forwarded to the coerce function via ``config``
 **Args:**
 
-- `type_name` `str` — The ``yosoi_type`` identifier (e.g. ``'price'``).
-- `description` `str` — Default field description shown in manifests and to the AI.
-- `semantic` `SemanticRule | None` — Optional :class:`SemanticRule` describing the shape a correct
+- `type_name` `str` -- The ``yosoi_type`` identifier (e.g. ``'price'``).
+- `description` `str` -- Default field description shown in manifests and to the AI.
+- `semantic` `SemanticRule | None` -- Optional :class:`SemanticRule` describing the shape a correct
 value should have. Used by the discovery semantic-retry loop.
-- `**config_defaults` `Any` — Config keys with their default values. These become
+- `**config_defaults` `Any` -- Config keys with their default values. These become
 keyword arguments on the generated factory function.
 
 Example::
@@ -408,7 +408,7 @@ Example::
 Resolve a contract name to a Contract class (exact matching only).
 
 This is the programmatic API. No fuzzy matching or file scanning is
-performed — those are CLI-only DX features in ``SchemaParamType``.
+performed -- those are CLI-only DX features in ``SchemaParamType``.
 
 Resolution order:
 1. Exact match in BUILTIN_SCHEMAS
@@ -417,13 +417,13 @@ Resolution order:
 4. Dynamic import via ``path:ClassName``
 **Args:**
 
-- `name` `str` — Contract name or ``path:ClassName`` string.
+- `name` `str` -- Contract name or ``path:ClassName`` string.
 
-**Returns:** `type[Contract]` — The resolved Contract subclass.
+**Returns:** `type[Contract]` -- The resolved Contract subclass.
 
 **Raises:**
 
-- `ValueError` — If no matching contract is found.
+- `ValueError` -- If no matching contract is found.
 
 ## `role` <a href="https://github.com/CascadingLabs/Yosoi/blob/0.0.2a19/yosoi/__init__.py#L41" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
@@ -470,19 +470,19 @@ Resolution order:
 Yosoi-aware Field wrapper that stores discovery guidance in json_schema_extra.
 **Args:**
 
-- `frozen` `bool` — If True, marks the field as frozen (selector won't be re-discovered).
-- `selector` `str | None` — Optional CSS selector override. When set, AI discovery is skipped
+- `frozen` `bool` -- If True, marks the field as frozen (selector won't be re-discovered).
+- `selector` `str | None` -- Optional CSS selector override. When set, AI discovery is skipped
 for this field and the provided selector is used directly.
-- `delimiter` `str | None` — Optional regex pattern for splitting delimited strings in list fields.
+- `delimiter` `str | None` -- Optional regex pattern for splitting delimited strings in list fields.
 Defaults to comma/semicolon/and splitting when not set.
-- `description` `str | None` — Optional keyword argument forwarded to pydantic.Field and used as AI selector-discovery guidance.
-- `**kwargs` `Any` — Additional arguments forwarded to pydantic.Field.
+- `description` `str | None` -- Optional keyword argument forwarded to pydantic.Field and used as AI selector-discovery guidance.
+- `**kwargs` `Any` -- Additional arguments forwarded to pydantic.Field.
 
-**Returns:** `Any` — A pydantic FieldInfo with Yosoi-specific metadata in json_schema_extra.
+**Returns:** `Any` -- A pydantic FieldInfo with Yosoi-specific metadata in json_schema_extra.
 
 **Raises:**
 
-- `TypeError` — If the removed ``hint`` argument is passed. Use ``description``.
+- `TypeError` -- If the removed ``hint`` argument is passed. Use ``description``.
 
 ## `Price` <a href="https://github.com/CascadingLabs/Yosoi/blob/0.0.2a19/yosoi/__init__.py#L48" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 

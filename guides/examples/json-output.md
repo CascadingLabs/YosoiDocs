@@ -3,7 +3,7 @@ title: JSON Output
 description: Save Yosoi extraction results to structured files.
 ---
 
-Set `output_format` on the `Pipeline` (or `--output` on the CLI) to persist extracted data automatically.
+Set `OutputPolicy(formats=...)` in Python (or `--output` on the CLI) to persist extracted data automatically.
 
 ## CLI
 
@@ -29,12 +29,11 @@ class Article(ys.Contract):
     author: str = ys.Author()
 
 async def main():
-    pipeline = ys.Pipeline(
-        ys.auto_config(),
-        contract=Article,
-        output_format='json',
+    policy = ys.Policy.cascade(
+        ys.Policy.from_env(),
+        ys.Policy(output=ys.OutputPolicy(formats=('json',))),
     )
-    async for item in pipeline.scrape('https://qscrape.dev/l1/news'):
+    for item in await ys.scrape('https://qscrape.dev/l1/news', Article, policy=policy):
         print(item.get('title'))
 
 asyncio.run(main())
@@ -51,7 +50,10 @@ Results are written to `.yosoi/content/<domain>/results.json`. Multi-item pages 
 ## Multiple Formats at Once
 
 ```python
-pipeline = ys.Pipeline(config, contract=Article, output_format=['json', 'csv'])
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(output=ys.OutputPolicy(formats=('json', 'csv'))),
+)
 ```
 
 ## Supported Formats

@@ -23,7 +23,7 @@ import JsonLd from '../../../src/components/JsonLd.astro';
 			name: "How do I force re-discovery for a domain I have already cached?",
 			acceptedAnswer: {
 				"@type": "Answer",
-				text: "Pass --force (or -F) to the CLI, or set force=True on the Pipeline constructor. You can also delete the corresponding file from .yosoi/selectors/ and run again.",
+				text: "Pass --force (or -F) to the CLI, set YOSOI_FORCE=1, or pass a Policy with ScrapePolicy(force=True). You can also delete the corresponding file from .yosoi/selectors/ and run again.",
 			},
 		},
 		{
@@ -103,15 +103,26 @@ class Product(ys.Contract):
     availability: str = Field(description='Stock status (e.g. "In Stock", "Out of Stock")')
 
 async def main():
-    pipeline = ys.Pipeline(ys.auto_config(), contract=Product)
+    policy = ys.Policy.cascade(
+        ys.Policy.from_env(),
+        ys.Policy(
+            scrape=ys.ScrapePolicy(fetcher_type='simple'),
+            output=ys.OutputPolicy(quiet=False),
+        ),
+    )
 
-    async for item in pipeline.scrape('https://qscrape.dev/l1/eshop/catalog/?cat=Forge%20%26%20Smithing'):
+    rows = await ys.scrape(
+        'https://qscrape.dev/l1/eshop/catalog/?cat=Forge%20%26%20Smithing',
+        Product,
+        policy=policy,
+    )
+    for item in rows:
         print(item.get('name'), item.get('price'))
 
 asyncio.run(main())
 ```
 
->[!Note] As long as you set your key in `.env` this example can be run as is
+>[!Note] As long as you set your key in `.env`, `Policy.from_env()` picks it up and this example can be run as is.
 
 Discovery only happens once per domain. Subsequent calls read from the local cache with no LLM calls and no cost.
 
@@ -146,7 +157,7 @@ Check that your API key is valid and that the target URL is publicly accessible.
 <details>
 <summary>How do I force re-discovery for a domain I have already cached?</summary>
 
-Pass `--force` (or `-F`) to the CLI, or set `force=True` on the `Pipeline` constructor. You can also delete the corresponding file from `.yosoi/selectors/` and run again.
+Pass `--force` (or `-F`) to the CLI, set `YOSOI_FORCE=1`, or pass `policy=ys.Policy(scrape=ys.ScrapePolicy(force=True))`. You can also delete the corresponding file from `.yosoi/selectors/` and run again.
 
 </details>
 

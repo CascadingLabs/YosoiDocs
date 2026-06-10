@@ -98,7 +98,7 @@ A mode that merges selector caches across domains that serve the same content. I
 
 <Badge text="Proposed" variant="note" size="small" />
 
-A first-class multi-page crawling mode. Currently Yosoi operates on single pages — there is no way to chain together multiple linked pages. Multi-page crawling is a common use-case that makes sense to include natively. This would likely require expanding the AI generation step so that stateful "steps" are defined for the LLM to replay its predecessor's selectors and JavaScript actions needed to complete a crawl. With DOM-enabled rendering progressing rapidly via the A3Nodes work above, this is becoming increasingly viable.
+A first-class multi-page crawling mode. Currently Yosoi operates on single pages -- there is no way to chain together multiple linked pages. Multi-page crawling is a common use-case that makes sense to include natively. This would likely require expanding the AI generation step so that stateful "steps" are defined for the LLM to replay its predecessor's selectors and JavaScript actions needed to complete a crawl. With DOM-enabled rendering progressing rapidly via the A3Nodes work above, this is becoming increasingly viable.
 
 <LinkCard title="Issue #34" href="https://github.com/CascadingLabs/Yosoi/issues/34" description="Track this feature on GitHub" />
 
@@ -108,7 +108,7 @@ A first-class multi-page crawling mode. Currently Yosoi operates on single pages
 
 <Badge text="Proposed" variant="note" size="small" />
 
-Currently the pipeline sends N requests (one per contract field), each containing the full HTML, and hopes the LLM's context window is large enough. This needs to be more defensive. A smart batching or context management system would use a lightweight lxml pre-processor to trim the HTML to a safe-enough, close-enough subset per contract — reducing token cost and avoiding context window overflows.
+Currently the pipeline sends N requests (one per contract field), each containing the full HTML, and hopes the LLM's context window is large enough. This needs to be more defensive. A smart batching or context management system would use a lightweight lxml pre-processor to trim the HTML to a safe-enough, close-enough subset per contract -- reducing token cost and avoiding context window overflows.
 
 <LinkCard title="Issue #50" href="https://github.com/CascadingLabs/Yosoi/issues/50" description="Track this feature on GitHub" />
 

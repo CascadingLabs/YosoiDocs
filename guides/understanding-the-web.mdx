@@ -37,10 +37,10 @@ For L2 sites, render the page yourself with a headless browser (Playwright<sup>[
 
 [QScrape L2 sites](https://qscrape.dev) cover this category with Svelte<sup>[◇](#ref-4)</sup>, React<sup>[★](#ref-5)</sup>, Vue<sup>[⬡](#ref-6)</sup>, and Solid<sup>[▽](#ref-7)</sup>. We picked these because they cover different ways to interact with the DOM.
 
-- **Svelte** — compiled, meaning it emits plain imperative DOM calls with no runtime framework layer, but build-tool class hashing still applies.
-- **React** — uses a virtual DOM, diffing a JavaScript tree against the real DOM on each update, so the live markup can shift between renders.
-- **Vue** — pairs a reactive proxy system with a virtual DOM and template-based rendering, producing output similar to React but with different internal update patterns.
-- **Solid** — uses fine-grained signals with no virtual DOM; JSX compiles to direct DOM operations that update only the specific nodes affected by a state change, with no component re-renders.
+- **Svelte** -- compiled, meaning it emits plain imperative DOM calls with no runtime framework layer, but build-tool class hashing still applies.
+- **React** -- uses a virtual DOM, diffing a JavaScript tree against the real DOM on each update, so the live markup can shift between renders.
+- **Vue** -- pairs a reactive proxy system with a virtual DOM and template-based rendering, producing output similar to React but with different internal update patterns.
+- **Solid** -- uses fine-grained signals with no virtual DOM; JSX compiles to direct DOM operations that update only the specific nodes affected by a state change, with no component re-renders.
 
 Each approach leaves a different fingerprint in the rendered HTML, which is why a selector strategy that works on one framework may fail on another.
 

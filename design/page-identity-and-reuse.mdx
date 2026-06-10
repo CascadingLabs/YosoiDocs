@@ -1,0 +1,93 @@
+---
+title: "Page Identity & Reuse - State of Play"
+description: What Yosoi's page fingerprint, field atoms, trust tiers, and policy object do in the Yahoo reuse foundation branch.
+status: state-of-play
+---
+
+> [!Note] This is a **factual snapshot** of the code on branch `andberg9/yahoo-reuse-foundation` and the
+> Linear tickets that track it -- not a design proposal. Anything not listed under *What exists today*
+> is not built.
+
+## The model in one line
+
+A contract is a query; the web is the source of truth. The cache is keyed by the **page's shape**,
+not its URL -- discover a selector once, replay it on every page of that shape. A **signature**
+proposes that two pages are the same shape; a **trust policy** decides whether a match may serve a
+cached selector.
+
+## What exists today (code)
+
+### The signature -- `yosoi/generalization/fingerprint.py`
+
+`PageFingerprint.of(html, *, ax_snapshot=None, headers=None)` reduces a page to content-free feature
+**layers**, carried only when their fetch-tier signal is supplied:
+
+| Layer (field) | Signal | Source |
+|---|---|---|
+| `skeleton` | depth-D tag-path shingles (the template) | raw HTML -- always |
+| `semantic` | landmarks + heading shape + schema.org `@type` | raw HTML -- always |
+| `identity` | `data-*` attribute **keys** | raw HTML -- when present |
+| `ax_spine` | rendered accessibility **role set** | `ax_snapshot` (browser tiers) |
+| `network` | response header **names** + cookie **names** | `headers` (HTTP tiers) |
+
+`similarity()` / `matches()` are **conjunctive and fail-closed**: same shape only if every layer
+carried by *both* clears its threshold. Optional layers (`identity`, `ax`, `network`) compare only
+when both sides carry ≥ `_MIN_OPTIONAL_LAYER_FEATURES` (3) features, else they abstain
+(`PageSimilarity.{identity,ax,network}` = `None`). A degenerate (too-thin) page never matches. Only
+feature **names/roles/keys** enter the signature -- never values. Thresholds: skeleton 0.40, semantic
+0.50 (tuned on a 17-page live battery: 12/12, recall 7/8, precision 126/128); identity/ax/network
+thresholds are placeholders, marked PROVISIONAL in source.
+
+`page_shape_fp(observe_html(...))` is a separate **exact** bucket hash (`s1:`/`t1:` scheme). **This --
+not `similarity()` -- is what the read path keys on today.**
+
+### The cache unit -- `yosoi/storage/atoms.py`
+
+`FieldAtom` keyed `(page_shape, region_role, field_name, yosoi_type)`; the literal domain is demoted
+to `domains_seen` provenance. `FieldAtom.source` records how the selector was obtained --
+`verified` > `manual`/`llm` > `fingerprint` (`SOURCE_TRUST`). Scheme-versioned (`a1`) with
+`list_stale_by_scheme` for non-destructive migration.
+
+### The trust policy -- `yosoi/policies.py`
+
+`Policy(atom_reads: bool, trust_tier: "strict"|"yellow")`, frozen. `Policy.from_env()` reads
+`YOSOI_ATOM_READS` / `YOSOI_ATOM_TRUST`; `Policy.cascade(*layers)` merges partial overrides
+(`defaults < env < …`). `policy.allowed_sources` → `TRUSTED_SOURCES` (`verified`/`manual`/`llm`) under
+**strict** (quarantines `fingerprint`-tier reuse, default), or `None` (all tiers) under **yellow**.
+
+### The read path -- `yosoi/core/resolve.py`
+
+`resolve(spec, html, cache, domain, *, atom_store=None, policy=None)` resolves the policy **once**
+(`policy or Policy.from_env()` -- the single boundary env-read) and threads it into `_try_atom_reads`,
+which serves from the atom index only when `policy.atom_reads` is on **and** every field resolves
+unambiguously on the **exact** `page_shape` **and** the atom's `source` is in `policy.allowed_sources`.
+Anything less falls through to discovery (fail-closed). The deep core takes config as a value, no
+`os.environ` (CAS-119 purity contract).
+
+### Advisory wiring -- `yosoi/core/discovery/orchestrator.py`
+
+`_log_page_shape` builds a `PageFingerprint` (incl. the AX layer when the tier supplied `ax_snapshot`)
+and logs which layers the tier carried. This is log-only; it does not key the cache.
+
+## Not built / not wired (current limitations)
+
+- The fuzzy `similarity()` path is **not** wired into reads -- cross-shape reuse is measured but the
+  read path keys on the exact `page_shape_fp` bucket. Reuse only fires within an identical bucket.
+- The policy **edge** now accepts `policy=` on `api.scrape`; env-only fallback remains available, so the
+  cascade's session/contract/call layers have no producer; `resolve()` falls back to `from_env()`.
+- No verify-on-reuse step, no signal-lane queue, no health/drift tracking.
+- L3 endpoint layer is absent (the network signal is not surfaced by VoidCrawl yet).
+- Two documented residues in source: framework-global names can vacuously agree (KNOWN LIMITATION #2);
+  cross-tier compare (rich seed vs thin replay) falls back to common layers instead of abstaining.
+
+## Tracked in Linear
+
+| Ticket | Status | Scope |
+|---|---|---|
+| [CAS-119](https://linear.app/cascadinglabs/issue/CAS-119) | In Progress | `resolve()` purity contract (the constraint this all serves) |
+| [CAS-168](https://linear.app/cascadinglabs/issue/CAS-168) | In Progress | `ys.policies` cascade -- per-session/contract/call layers, signal-lane queue (defer-not-drop) |
+| [CAS-169](https://linear.app/cascadinglabs/issue/CAS-169) | Backlog | VoidCrawl L3 endpoint capture + voiddriver blind-spot fix + Yosoi `network_endpoint_skeleton` layer |
+| [CAS-141](https://linear.app/cascadinglabs/issue/CAS-141) | In Progress | Per-field `ElementObservation` -- selector-drift detector |
+| [CAS-131](https://linear.app/cascadinglabs/issue/CAS-131) | Backlog | Degenerate-page fail-safe ABSTAIN (recommender path; the fingerprint path already guards this) |
+| [CAS-159](https://linear.app/cascadinglabs/issue/CAS-159) | Backlog | Stable caller-owned contract intent IDs (docstring is not strong identity) |
+| [CAS-97](https://linear.app/cascadinglabs/issue/CAS-97) | In Progress | Canonical serializable contract + structural identity |

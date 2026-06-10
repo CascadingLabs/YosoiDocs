@@ -57,7 +57,7 @@ LANGFUSE_SECRET_KEY=sk-...
 LANGFUSE_BASE_URL=https://cloud.langfuse.com    # or https://us.cloud.langfuse.com
 ```
 
-That's it. Any `Pipeline` you construct will pick them up via `TelemetryConfig` and start sending traces. Cloud Langfuse maintains a comprehensive built-in pricing table, so `totalCost` populates automatically on most providers.
+That's it. Any `Pipeline` you construct with `Policy.from_env()` will pick them up via `TelemetryPolicy` and start sending traces. Cloud Langfuse maintains a comprehensive built-in pricing table, so `totalCost` populates automatically on most providers.
 
 For SSO, team management, and self-serve org setup, follow [Langfuse's official setup docs](https://langfuse.com/docs/get-started).
 
@@ -85,7 +85,7 @@ LANGFUSE_SECRET_KEY=sk-...
 LANGFUSE_BASE_URL=http://localhost:3000
 ```
 
-Any `Pipeline` you construct will pick them up via `TelemetryConfig` and start sending traces. Without these keys, observability is a silent no-op and pipelines run unchanged.
+Any `Pipeline` you construct with `Policy.from_env()` will pick them up via `TelemetryPolicy` and start sending traces. Without these keys, observability is a silent no-op and pipelines run unchanged.
 
 ### Cost tracking on a non-standard model name (OpenRouter, LiteLLM, Bedrock)
 
@@ -178,5 +178,5 @@ Yes. The only env var that changes is `LANGFUSE_BASE_URL`. Swap it from `http://
 
 ## See also
 
-- [Instrumenting pipelines](/observability/instrumenting-pipelines/): pass these keys via `TelemetryConfig`.
+- [Instrumenting pipelines](/observability/instrumenting-pipelines/): pass these keys via `TelemetryPolicy` or `Policy.from_env()`.
 - [Configuration](/yosoi/configuration/): the full env-var table.

@@ -30,9 +30,12 @@ class Product(ys.Contract):
     rating: str = ys.Rating()
 
 async def main():
-    pipeline = ys.Pipeline(ys.auto_config(), contract=Product)
+    policy = ys.Policy.cascade(
+        ys.Policy.from_env(),
+        ys.Policy(scrape=ys.ScrapePolicy(fetcher_type='simple')),
+    )
 
-    async for item in pipeline.scrape('https://qscrape.dev/l1/eshop'):
+    for item in await ys.scrape('https://qscrape.dev/l1/eshop', Product, policy=policy):
         print(item.get('name'), item.get('price'))
 
 asyncio.run(main())
@@ -57,9 +60,12 @@ class Product(ys.Contract):
     rating: str = ys.Rating()
 
 async def main():
-    pipeline = ys.Pipeline(ys.auto_config(), contract=Product)
+    policy = ys.Policy.cascade(
+        ys.Policy.from_env(),
+        ys.Policy(scrape=ys.ScrapePolicy(fetcher_type='simple')),
+    )
 
-    async for item in pipeline.scrape('https://qscrape.dev/l1/eshop'):
+    for item in await ys.scrape('https://qscrape.dev/l1/eshop', Product, policy=policy):
         print(item.get('name'), item.get('price'))
 
 asyncio.run(main())

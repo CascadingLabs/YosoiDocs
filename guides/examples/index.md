@@ -8,6 +8,8 @@ All examples in this documentation use [QScrape](https://qscrape.dev)<sup>[△](
 
 If you want to follow along locally, every example here will work against the corresponding QScrape URL without modification.
 
+The Yahoo Finance reuse test is the exception: it is a live operator smoke for page identity reuse. Use it when you need to validate real rendered pages across same-shaped ticker URLs, not as a required CI fixture.
+
 ## FAQs
 
 <details>
