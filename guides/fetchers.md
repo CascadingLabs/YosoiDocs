@@ -1,22 +1,30 @@
 ---
 title: Fetchers
-description: Choose how Yosoi retrieves HTML -- plain HTTP, headless Chrome, or an adaptive waterfall.
+description: Choose how Yosoi retrieves HTML -- auto, plain HTTP, headless Chrome, headful Chrome, or waterfall.
+faqs:
+  - q: "How do I know which fetcher a URL actually needed?"
+    a: "Check .yosoi/fetch/ after the waterfall runs for a domain. The JSON file records which tier won. Run with --debug to also save the HTML Yosoi received from that tier."
+  - q: "Does concurrent processing (workers > 1) work with browser fetchers?"
+    a: "Yes. Each concurrent worker creates its own fetcher instance. For the waterfall, Chrome starts lazily per worker on first need. The per-domain strategy cache is shared across workers via the filesystem."
+  - q: "Can I pass custom Chrome arguments to the browser fetchers?"
+    a: "Not directly through the Pipeline API today. The VoidCrawl BrowserConfig is constructed inside the fetcher with headless, stealth, and no_sandbox options. Pass no_sandbox=True when running inside Docker or other sandboxed environments."
 ---
 
-Yosoi fetches HTML before selector discovery and extraction. Every fetch goes through an `HTMLFetcher` instance. The default is a fast plain-HTTP client; for JavaScript-heavy pages you can escalate to a browser-backed fetcher or use the adaptive waterfall that handles both.
+Yosoi fetches HTML before selector discovery and extraction. Every fetch goes through an `HTMLFetcher` instance. The default is `auto`: Yosoi starts with the simple HTTP tier when that is enough, then promotes to browser-backed fetching when the page needs rendered DOM evidence.
 
 ## Fetcher Types
 
 | Fetcher | CLI flag | Python value | Description |
 |---------|----------|--------------|-------------|
+| Auto | `--fetcher auto` | `'auto'` | Default. Starts with simple HTTP and promotes to browser tiers when needed. |
 | Simple | `--fetcher simple` | `'simple'` | Plain HTTP with realistic headers. Fast, no Chrome dependency. |
 | Waterfall | `--fetcher waterfall` | `'waterfall'` | Simple → Headless → Headful. Adapts to the page automatically. |
 | Headless | `--fetcher headless` | `'headless'` | Headless Chrome via VoidCrawl. |
 | Headful | `--fetcher headful` | `'headful'` | Visible Chrome via VoidCrawl. Best bot evasion. |
 
-### Simple Fetcher (default)
+### Auto Fetcher (default)
 
-Sends HTTP requests with randomized user-agent headers and realistic browser fingerprints. Works for the majority of sites -- any page where the content is present in the server response without needing JavaScript to render.
+`auto` is the default because it keeps static pages cheap without making JavaScript-rendered pages a separate workflow. It begins with simple HTTP and uses the same browser-backed tiers as the waterfall when the probe or page result shows that static HTML is not enough.
 
 ```bash
 uv run yosoi --url https://qscrape.dev/l1/news --contract NewsArticle
@@ -25,6 +33,12 @@ uv run yosoi --url https://qscrape.dev/l1/news --contract NewsArticle
 ```python
 rows = await ys.scrape(url, Contract, policy=ys.Policy.from_env())
 ```
+
+When to use: most workflows. Use an explicit fetcher only when you need a fixed tier for reproducibility, debugging, or deployment constraints.
+
+### Simple Fetcher
+
+Sends HTTP requests with randomized user-agent headers and realistic browser fingerprints. Works for the majority of sites -- any page where the content is present in the server response without needing JavaScript to render.
 
 When to use: static sites, news portals, most product catalogues, anything where `Cmd+U` / `Ctrl+U` in a browser shows the content you want to extract.
 

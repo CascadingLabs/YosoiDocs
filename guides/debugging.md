@@ -7,7 +7,7 @@ When something goes wrong, Yosoi gives you a few tools to figure out what happen
 
 ## The `--debug` Flag
 
-Pass `--debug` (or `-d`) to the CLI, or set `debug=True` on the `Pipeline` constructor, to save a snapshot of the HTML that was sent to the LLM:
+Pass `--debug` (or `-d`) to the CLI, or set `OutputPolicy(debug_html=True)`, to save a snapshot of the HTML that was sent to the LLM:
 
 ```bash
 uv run yosoi --url https://qscrape.dev --contract Product --debug
@@ -35,7 +35,7 @@ Snapshots are saved to `.yosoi/debug_html/` as plain HTML files, named by domain
 
 **Symptoms:** Empty or near-empty debug HTML. The LLM returns selectors that don't match anything.
 
-**Fix:** Open the URL in a browser. If it requires JavaScript to render, Yosoi's static fetcher won't see the content. You need to pass pre-rendered HTML via a browser automation tool (Playwright<sup>[△](#ref-1)</sup>, Selenium<sup>[○](#ref-2)</sup>) or wait for the upcoming DOM-enabled scraping feature (see [Roadmap](/roadmap/)).
+**Fix:** Open the URL in a browser and compare page source with the inspected DOM. If JavaScript is required, try `--fetcher auto`, `--fetcher headless`, or `--fetcher headful` before reaching for external browser automation. Run with `--debug` again to confirm the HTML snapshot contains the content you expect.
 
 ### 3. Wrong Root Selector
 

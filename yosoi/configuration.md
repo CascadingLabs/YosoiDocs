@@ -1,6 +1,17 @@
 ---
 title: Configuration
 description: Environment variables and runtime options.
+faqs:
+  - q: "What happens if I set multiple provider keys?"
+    a: "Yosoi picks one based on a built-in fallback order (Groq, Gemini, Cerebras, OpenAI, OpenRouter). To control which provider and model are used, set YOSOI_MODEL to a provider:model string (e.g. groq:llama-3.3-70b-versatile)."
+  - q: "Can I change the .yosoi/ storage location?"
+    a: "Not currently. The directory is always created in the working directory where Yosoi is run."
+  - q: "Is .yosoi/ safe to commit to version control?"
+    a: "The selector cache is safe to commit if you want to share discovered selectors across a team. The logs/, debug_html/, and content/ subdirectories are noisy and should stay gitignored."
+  - q: "How do I enable debug HTML snapshots?"
+    a: "Pass --debug when running the CLI. Snapshots are saved to .yosoi/debug_html/ and are useful for diagnosing extraction failures."
+  - q: "Can multiple CLI invocations share one Langfuse session?"
+    a: "Yes. Pass --session-id (or set YOSOI_SESSION_ID= in the environment) so every invocation under that orchestrator rolls up into one logical session in the Langfuse UI."
 ---
 
 ## Environment Variables

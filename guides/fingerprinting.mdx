@@ -1,0 +1,363 @@
+---
+title: Fingerprinting
+description: How Yosoi compares page fingerprints with weighted Jaccard.
+faqs:
+  - q: "Does a high fingerprint score automatically reuse selectors?"
+    a: "No. Fingerprinting produces auditable shape evidence. Selector serving is still controlled by exact page-shape buckets and policy."
+  - q: "Why not use raw Jaccard for every layer?"
+    a: "Raw Jaccard treats every feature equally. That can overvalue shared site chrome such as headers, nav, and footers. Weighted Jaccard gives more influence to features that better distinguish templates."
+  - q: "Why do optional layers abstain?"
+    a: "Thin optional layers can produce misleading perfect overlap. If either page carries fewer than 3 features for identity, AX, network, or endpoint evidence, that layer abstains instead of passing or vetoing."
+  - q: "Where should I look for selector-serving behavior?"
+    a: "Read Page Identity and Reuse for the current serving path. This page explains the fingerprint evidence that can inform reuse decisions."
+---
+
+Yosoi fingerprinting helps answer whether selector knowledge from one fetched page is relevant to another fetched page when URLs, text, ads, counts, or site chrome change.
+
+Today, weighted fingerprints are primarily **auditable similarity evidence**. They do not automatically cause fuzzy selector reuse. The current read path is still conservative: exact page-shape buckets and policy decide whether selector evidence may serve a scrape.
+
+<figure class="ys-figure">
+  <div class="ys-flow">
+    <div class="ys-node">
+      <div class="ys-node__label">Capture</div>
+      <div class="ys-node__title">Fetched page</div>
+      <div class="ys-node__body">HTML plus optional browser, header, and endpoint evidence.</div>
+    </div>
+    <div class="ys-node">
+      <div class="ys-node__label">Reduce</div>
+      <div class="ys-node__title">Content-free layers</div>
+      <div class="ys-chip-grid">
+        <span class="ys-chip">skeleton</span>
+        <span class="ys-chip">semantic</span>
+        <span class="ys-chip">identity</span>
+        <span class="ys-chip">AX</span>
+        <span class="ys-chip">network</span>
+        <span class="ys-chip">endpoint</span>
+      </div>
+    </div>
+    <div class="ys-node ys-node--accent">
+      <div class="ys-node__label">Compare</div>
+      <div class="ys-node__title">Weighted Jaccard</div>
+      <div class="ys-node__body">Generic chrome has less influence; discriminating template evidence has more.</div>
+    </div>
+    <div class="ys-node">
+      <div class="ys-node__label">Decide</div>
+      <div class="ys-node__title">Same shape?</div>
+      <div class="ys-node__body">Every available layer with enough signal must pass its threshold.</div>
+    </div>
+  </div>
+  <figcaption>Fingerprinting compares page shape without storing page content or authorizing selector reuse by itself.</figcaption>
+</figure>
+
+## What It Does
+
+A page fingerprint compares page shape without keeping page content.
+
+- **Content-free** means values are stripped out. Yosoi keeps signals such as tag paths, landmark names, schema types, `data-*` keys, accessibility roles, header names, and endpoint skeletons.
+- **Layer** means one family of signals, such as DOM skeleton, semantic landmarks, identity attributes, accessibility roles, network headers, or endpoints.
+- **Carried layer** means both pages have enough signal for that layer to vote. Optional layers with too little signal abstain.
+
+The shape decision asks whether every available layer with enough signal clears its threshold. This prevents shared navigation, footers, or framework chrome from forcing unrelated pages to look similar.
+
+## Page Layers
+
+`PageFingerprint.of(...)` builds these feature sets:
+
+| Layer | Fingerprint field | Similarity evidence field | Source | Keeps | Ignores |
+|-------|-------------------|---------------------------|--------|-------|---------|
+| Template skeleton | `skeleton` | `skeleton` | HTML | depth-2 tag paths, identity presence, first two non-hash class tokens per node | text values, repeated row counts, CSS hash noise |
+| Static semantics | `semantic` | `semantic` | HTML | landmarks, roles, heading count bands, schema.org types | heading text and values |
+| Identity attributes | `identity` | `identity` | HTML | `data-*` keys | `data-*` values, raw `id` values |
+| Rendered AX spine | `ax_spine` | `ax` | browser AX snapshot | distinct accessibility roles | accessible names, counts, coordinates |
+| Header network signature | `network` | `network` | response headers | header names and cookie names | header values and cookie values |
+| Endpoint skeleton | `endpoints` | `endpoint` | endpoint list | host plus path with numeric, UUID, hex, redacted, or digit-heavy segments collapsed | endpoint values supplied only in query strings, duplicate calls |
+
+Endpoint inputs are expected to come from the producer already stripped of query strings, fragments, and secrets. Alpha path IDs such as ticker symbols are a known current limit: they are not collapsed by the current normalizer.
+
+The public shape check is:
+
+```python
+from yosoi import PageFingerprint
+
+seed = PageFingerprint.of(seed_html)
+candidate = PageFingerprint.of(candidate_html)
+
+similarity = seed.similarity(candidate)
+same_shape = similarity.same_shape
+```
+
+Richer fetch tiers can pass optional evidence:
+
+```python
+seed = PageFingerprint.of(seed_html, ax_snapshot=seed_ax, headers=seed_headers, endpoints=seed_endpoints)
+candidate = PageFingerprint.of(
+    candidate_html,
+    ax_snapshot=candidate_ax,
+    headers=candidate_headers,
+    endpoints=candidate_endpoints,
+)
+```
+
+`ax_snapshot` comes from rendered browser accessibility data, `headers` from response metadata, and `endpoints` from browser or CDP network capture.
+
+## The Score
+
+Raw Jaccard counts overlap:
+
+```text
+raw Jaccard = size(A shared with B) / size(A or B)
+```
+
+Weighted Jaccard uses the same overlap idea, but each feature contributes its layer-specific weight:
+
+```text
+weighted Jaccard =
+  sum(weight(feature) for feature shared by A and B)
+  /
+  sum(weight(feature) for feature in A or B)
+```
+
+In code, this is `weighted_jaccard(a, b, layer=...)` in `yosoi/generalization/fingerprint.py`.
+
+```python
+numerator = sum(_feature_weight(feature, layer=layer) for feature in a & b)
+denominator = sum(_feature_weight(feature, layer=layer) for feature in a | b)
+score = numerator / denominator
+```
+
+Raw Jaccard and containment are still reported for debugging. The carried-layer decision uses the weighted score.
+
+## Worked Example: Semantic Chrome
+
+`lm:` features are HTML landmarks. `schema:` features are schema.org structured-data types.
+
+An article page and a product page might share the same site header, nav, and footer while advertising different schema types:
+
+```python
+shared_chrome = {'lm:header', 'lm:nav', 'lm:footer'}
+
+product = shared_chrome | {'schema:Product'}
+article = shared_chrome | {'schema:Article'}
+```
+
+Raw Jaccard says the pages overlap:
+
+```text
+intersection = {lm:header, lm:nav, lm:footer} = 3 features
+union = {lm:header, lm:nav, lm:footer, schema:Product, schema:Article} = 5 features
+
+raw Jaccard = 3 / 5 = 0.60
+```
+
+Weighted Jaccard says the shared evidence is weak, because header/nav/footer are generic chrome and schema types are discriminating.
+
+Semantic weights in current code:
+
+```text
+lm:header = 0.35
+lm:nav    = 0.35
+lm:footer = 0.35
+schema:*  = 3.00
+```
+
+The weighted score is:
+
+```text
+intersection weight = 0.35 + 0.35 + 0.35 = 1.05
+union weight = 1.05 + 3.00 + 3.00 = 7.05
+
+weighted Jaccard = 1.05 / 7.05 = 0.149
+```
+
+That is below the default semantic threshold of `0.50`, so the semantic layer vetoes a same-shape match even though raw Jaccard looked high.
+
+## Worked Example: Partial Identity
+
+Identity features use `data-*` keys, not values.
+
+```text
+page A identity = {data:data-testid, data:data-component, data:data-state}
+page B identity = {data:data-testid, data:data-component, data:data-flag}
+```
+
+Raw Jaccard:
+
+```text
+intersection = {data:data-testid, data:data-component} = 2
+union = {data:data-testid, data:data-component, data:data-state, data:data-flag} = 4
+
+raw Jaccard = 2 / 4 = 0.50
+```
+
+Weighted Jaccard gives `testid` and `component` more influence:
+
+```text
+data:data-testid    = 2.00
+data:data-component = 2.00
+data:data-state     = 1.00
+data:data-flag      = 1.00
+
+intersection weight = 2.00 + 2.00 = 4.00
+union weight = 4.00 + 1.00 + 1.00 = 6.00
+
+weighted Jaccard = 4.00 / 6.00 = 2 / 3
+```
+
+This explains the audit evidence: the pages share the higher-value identity keys but not the whole identity namespace. Because matching uses `>=`, an identity threshold of exactly `2 / 3` passes, while any threshold above `2 / 3` vetoes. The default identity threshold is `0.40`, so this layer would pass by default.
+
+## Worked Example: Containment
+
+Containment is reported as evidence for subset cases. It does not replace the weighted Jaccard gate.
+
+```text
+base     = {lm:main, schema:Product}
+enriched = {lm:main, schema:Product, lm:aside, h2:mid}
+```
+
+Raw Jaccard:
+
+```text
+2 shared / 4 total = 0.50
+```
+
+Semantic weighted Jaccard with current weights:
+
+```text
+lm:main        = 1.50
+schema:Product = 3.00
+lm:aside       = 1.00
+h2:mid         = 1.25
+
+intersection weight = 1.50 + 3.00 = 4.50
+union weight = 4.50 + 1.00 + 1.25 = 6.75
+
+weighted Jaccard = 4.50 / 6.75 = 2 / 3
+```
+
+Containment asks whether the smaller set is contained in the larger one:
+
+```text
+2 shared / 2 smaller-side features = 1.00
+```
+
+This is useful when one page has an extra rail, ad module, or recommendation block. It explains why two pages may still be related, while the weighted layer score remains the decision score.
+
+## Decision Rule
+
+`matches()` is conjunctive and fail-closed:
+
+1. A degenerate page never matches. Thin or blank pages can otherwise produce misleading perfect overlaps.
+2. Skeleton and semantic layers always vote on non-degenerate pages.
+3. Optional layers vote only when both pages carry at least 3 features.
+4. Optional layers with fewer than 3 features abstain. They do not pass and they do not veto.
+5. Every voting layer must clear its threshold using weighted Jaccard.
+
+Current defaults:
+
+| Layer | Threshold |
+|-------|-----------|
+| Skeleton | `0.40` |
+| Semantic | `0.50` |
+| Identity | `0.40` |
+| AX | `0.50` |
+| Network | `0.50` |
+| Endpoint | `0.50` |
+
+Thresholds can be overridden by callers, but the degenerate-page guard still wins. Treat threshold changes as a way to inspect or experiment with evidence, not as the main way to force reuse.
+
+## Contract And Field Identity
+
+Page fingerprints only decide whether two fetched pages have the same shape. They do not replace contract identity or serving policy.
+
+Yosoi keeps three identities separate:
+
+| Identity | Code | Purpose | Key material |
+|----------|------|---------|--------------|
+| Contract | `ContractSpec.fingerprint` | separates different user asks | name, doc, schema version, sorted field names, selected per-field identity fields, root, nested specs, validators |
+| Page shape | `page_shape_fp()` / `PageFingerprint` | compares fetched page templates | structural HTML, semantics, optional AX/header/endpoint layers |
+| Field selector atom | `FieldAtom.key` | reuses one selector fact | page shape, root/region, field name, Yosoi type |
+
+Contract fingerprints exclude per-field descriptions. The per-field fingerprint subset is `yosoi_type`, pinned selector, delimiter, frozen flag, python type, and action type.
+
+That separation matters:
+
+```text
+NewsArticle(title, url, author, published_at)
+!=
+NewsArticle(title, url, author, published_at, summary)
+```
+
+Those contracts have different fingerprints. But if both contracts ask for `url` inside the same page shape and root region, Yosoi can identify compatible field-level evidence for possible reuse, subject to policy.
+
+## Field Atoms
+
+A field atom is one reusable selector fact:
+
+```text
+on page_shape S,
+inside region/root R,
+field F of type T
+is extracted by selector X
+```
+
+Its key is:
+
+```text
+(page_shape, region_role, field_name, yosoi_type)
+```
+
+The domain is provenance, not identity. Contract names are provenance for rooted fields, but rootless fields fall back to `region_role = name:<contract>`, so the contract name can become part of atom identity when there is no root region.
+
+Domain-independent identity does not mean domain-independent serving. Reuse policy still decides whether a selector may be used.
+
+Example:
+
+```text
+Contract A: OrganicResult(title, url)
+Contract B: SearchResult(title, url, snippet)
+```
+
+If both use the same page shape and root region for `url`, the compatible `url` evidence may be represented by the same atom. `SearchResult` only needs additional evidence for `snippet`.
+
+## Serving Policy Caveat
+
+The fingerprint pieces exist, but selector serving remains conservative:
+
+- `ContractSpec.fingerprint` exists.
+- `PageFingerprint` and `page_shape_fp()` exist.
+- `FieldAtom` and `AtomStore` exist.
+- `fingerprint` is classified as a quarantined source in the trust lattice.
+- Strict serving rejects `fingerprint`-sourced atoms by default; yellow trust may serve them as quarantined evidence.
+- The read path does not fully rely on fuzzy page-fingerprint similarity for serving selectors yet.
+
+So fingerprinting already produces weighted, auditable similarity evidence. Reuse policy still decides whether that evidence is allowed to serve selectors.
+
+## FAQs
+
+<details>
+<summary>Does a high fingerprint score automatically reuse selectors?</summary>
+
+No. Fingerprinting produces auditable shape evidence. Selector serving is still controlled by exact page-shape buckets and policy.
+
+</details>
+
+<details>
+<summary>Why not use raw Jaccard for every layer?</summary>
+
+Raw Jaccard treats every feature equally. That can overvalue shared site chrome such as headers, nav, and footers. Weighted Jaccard gives more influence to features that better distinguish templates.
+
+</details>
+
+<details>
+<summary>Why do optional layers abstain?</summary>
+
+Thin optional layers can produce misleading perfect overlap. If either page carries fewer than 3 features for identity, AX, network, or endpoint evidence, that layer abstains instead of passing or vetoing.
+
+</details>
+
+<details>
+<summary>Where should I look for selector-serving behavior?</summary>
+
+Read [Page Identity and Reuse](/guides/page-identity-reuse/) for the current serving path. This page explains the fingerprint evidence that can inform reuse decisions.
+
+</details>

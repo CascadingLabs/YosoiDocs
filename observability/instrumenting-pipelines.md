@@ -24,7 +24,7 @@ faqs:
       CLI run that exported the var into a parent shell, a .env that sets
       YOSOI_SESSION_ID for orchestration, or a long-lived worker process where
       an earlier batch's session id stuck.
-  - q: Does setting --workers > 1 change how I read traces?
+  - q: Does setting --workers greater than 1 change how I read traces?
     a: >-
       Slightly. With workers=1 you get one trace per URL and that's the whole
       picture. With workers > 1 you also get a detached enqueue span per

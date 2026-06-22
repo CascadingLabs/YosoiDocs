@@ -1,6 +1,15 @@
 ---
 title: Multi-Item Extraction
 description: Extract multiple items from listing and catalog pages.
+faqs:
+  - q: "How does the AI determine the container selector?"
+    a: "It analyzes the page HTML for repeating structural patterns. If the same element type appears multiple times with consistent child structure, it is treated as the container. Clear description text on your fields improves accuracy."
+  - q: "What if some items are missing fields?"
+    a: "Missing fields return None by default. Annotate the field as T | None in your contract to make this explicit and avoid validation errors."
+  - q: "Can I scrape both a listing page and its detail pages in one pass?"
+    a: "Not directly in a single scrape() call. The typical pattern is to extract URLs from the listing page, then call scrape() again for each detail URL."
+  - q: "What if the AI picks the wrong container and I get one giant item instead of many?"
+    a: "Pin the container with root = ys.css('your.selector') as shown above. Use --debug to inspect the extracted HTML and identify the correct selector."
 ---
 
 Yosoi handles pages where a selector matches many elements -- product cards, article lists, search results -- by detecting a repeating container and yielding one item per match.
@@ -55,10 +64,14 @@ async for item in pipeline.scrape('https://books.toscrape.com/catalogue/a-light-
 
 ## Saving Output
 
-Pass `output_format='json'` to persist results. Multi-item pages are saved as `{"items": [...]}`.
+Set `OutputPolicy(formats=...)` to persist results. Multi-item pages are saved as `{"items": [...]}`.
 
 ```python
-pipeline = ys.Pipeline(config, contract=Product, output_format='json')
+policy = ys.Policy.cascade(
+    ys.Policy.from_env(),
+    ys.Policy(output=ys.OutputPolicy(formats=('json',))),
+)
+pipeline = ys.Pipeline(policy=policy, contract=Product)
 ```
 
 ## FAQs

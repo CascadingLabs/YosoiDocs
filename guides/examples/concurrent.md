@@ -20,10 +20,10 @@ https://qscrape.dev/l1/eshop
 uv run yosoi --file urls.txt --contract NewsArticle --workers 3 --output json
 ```
 
-Or pass multiple `--url` flags in sequence (processed sequentially without `--file`):
+For ad hoc discovery runs, the `discover` subcommand also accepts multiple positional URLs:
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/news --url https://qscrape.dev/l1/eshop --workers 2
+uv run yosoi discover https://qscrape.dev/l1/news https://qscrape.dev/l1/eshop --contract NewsArticle --workers 2
 ```
 
 ## Python

@@ -1,49 +1,20 @@
 ---
 title: Quick Start
 description: Install Yosoi and start scraping in minutes.
+faqs:
+  - q: "What if selector discovery fails?"
+    a: "Check that your API key is valid and that the target URL is publicly accessible. Run with --debug to capture the extracted HTML and inspect what was sent to the LLM."
+  - q: "How do I force re-discovery for a domain I have already cached?"
+    a: "Pass --force (or -F) to the CLI, set YOSOI_FORCE=1, or pass policy=ys.Policy(scrape=ys.ScrapePolicy(force=True)). You can also delete the corresponding file from .yosoi/selectors/ and run again."
+  - q: "Can I use pip instead of uv?"
+    a: "Yes. pip install yosoi works fine. The docs use uv ⬡ because it is faster and handles virtual environments automatically, but there is no hard dependency on it."
+  - q: "How do I switch providers?"
+    a: "Pass --model groq:llama-3.3-70b-versatile (or any provider:model string) to the CLI, or set YOSOI_MODEL in your .env file."
 ---
 
 import { Steps } from '@astrojs/starlight/components';
 import JsonLd from '../../../src/components/JsonLd.astro';
 
-<JsonLd schema={{
-	"@context": "https://schema.org",
-	"@type": "FAQPage",
-	mainEntity: [
-		{
-			"@type": "Question",
-			name: "What if selector discovery fails?",
-			acceptedAnswer: {
-				"@type": "Answer",
-				text: "Check that your API key is valid and that the target URL is publicly accessible. Run with --debug to capture the extracted HTML and inspect what was sent to the LLM.",
-			},
-		},
-		{
-			"@type": "Question",
-			name: "How do I force re-discovery for a domain I have already cached?",
-			acceptedAnswer: {
-				"@type": "Answer",
-				text: "Pass --force (or -F) to the CLI, set YOSOI_FORCE=1, or pass a Policy with ScrapePolicy(force=True). You can also delete the corresponding file from .yosoi/selectors/ and run again.",
-			},
-		},
-		{
-			"@type": "Question",
-			name: "Can I use pip instead of uv?",
-			acceptedAnswer: {
-				"@type": "Answer",
-				text: "Yes. pip install yosoi works fine. The docs use uv because it is faster and handles virtual environments automatically, but there is no hard dependency on it.",
-			},
-		},
-		{
-			"@type": "Question",
-			name: "How do I switch providers?",
-			acceptedAnswer: {
-				"@type": "Answer",
-				text: "Pass --model groq:llama-3.3-70b-versatile (or any provider:model string) to the CLI, or set YOSOI_MODEL in your .env file.",
-			},
-		},
-	],
-}} />
 
 ## Install
 
@@ -84,7 +55,7 @@ Yosoi fetches the page, asks the LLM to identify selectors, validates them, and 
 
 ## Option 2: Python script
 
-Use the Python API when you need to process results programmatically.
+Use the Python API when you want a script you can share or extend.
 
 ```python
 import asyncio
@@ -98,9 +69,9 @@ class Product(ys.Contract):
     name: str = ys.Title(description='Product name or title')
     price: float | None = ys.Price(description='Product price (including currency symbol)')
     rating: float | None = ys.Rating(as_float=True, description='Star rating or review score (numeric, e.g. 4.2)')
-    reviews_count: int | None = Field(description='Number of reviews or ratings')
+    reviews_count: int | None = ys.Field(description='Number of reviews or ratings')
     description: str = ys.BodyText(description='Product description or summary')
-    availability: str = Field(description='Stock status (e.g. "In Stock", "Out of Stock")')
+    availability: str = ys.Field(description='Stock status (e.g. "In Stock", "Out of Stock")')
 
 async def main():
     policy = ys.Policy.cascade(
@@ -116,8 +87,7 @@ async def main():
         Product,
         policy=policy,
     )
-    for item in rows:
-        print(item.get('name'), item.get('price'))
+    ys.show(rows)
 
 asyncio.run(main())
 ```
@@ -139,7 +109,7 @@ Hopefully your terminal explained most of it, but here is the rundown:
 
 4. Selectors were validated against the page and cached in `.yosoi/selectors/`
 
-5. Data was extracted using the cached selectors and printed to your terminal
+5. Data was extracted using the cached selectors and rendered with `ys.show(...)`
 
 </Steps>
 

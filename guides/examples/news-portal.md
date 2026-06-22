@@ -37,10 +37,13 @@ class Article(ys.Contract):
     url: str = ys.Url()
 
 async def main():
-    pipeline = ys.Pipeline(policy=ys.Policy.from_env(), contract=Article)
+    policy = ys.Policy.cascade(
+        ys.Policy.from_env(),
+        ys.Policy(scrape=ys.ScrapePolicy(fetcher_type='simple')),
+    )
 
-    async for item in pipeline.scrape('https://qscrape.dev/l1/news'):
-        print(item.get('title'), item.get('author'))
+    rows = await ys.scrape('https://qscrape.dev/l1/news', Article, policy=policy)
+    ys.show(rows)
 
 asyncio.run(main())
 ```
@@ -59,5 +62,5 @@ uv run yosoi --url https://qscrape.dev/l1/news --contract news.py:Article
 
 ## What to Expect
 
-- First run: Yosoi calls the LLM to discover selectors, then extracts and prints each article. Selectors are cached to `.yosoi/selectors/`.
+- First run: Yosoi calls the LLM to discover selectors, then extracts and renders each article with `ys.show(...)`. Selectors are cached to `.yosoi/selectors/`.
 - Second run: Selectors are loaded from cache. No LLM call, near-instant extraction.

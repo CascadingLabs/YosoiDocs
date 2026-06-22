@@ -1,6 +1,13 @@
 ---
 title: Custom Types
 description: Extend Yosoi with your own semantic field types.
+faqs:
+  - q: "Which pattern should I use?"
+    a: "Use @register_coercion. It is the supported custom-type path."
+  - q: "Can custom types be used with list[T]?"
+    a: "Yes. Custom coercions run element-by-element on list fields, the same as built-in types."
+  - q: "How do I debug a coercion failure?"
+    a: "Raise a ValueError with a descriptive message inside your coerce function. Pydantic will surface it as a ValidationError with field context. Run with --debug to inspect the raw extracted values before coercion."
 ---
 
 When built-in types don't cover your domain, register a custom type. Once registered, it works exactly like a built-in: the AI sees it in the manifest, and the coercion runs automatically during extraction.

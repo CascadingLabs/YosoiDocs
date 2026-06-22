@@ -1,6 +1,15 @@
 ---
 title: List Fields
 description: Extract multiple values per field using list[T] in your contract.
+faqs:
+  - q: "Can I use list[int] or list[float]?"
+    a: "Yes. Type coercions apply per element, so list[float] with ys.Price() strips currency symbols from each value before converting to float."
+  - q: "What if the delimiter varies across items on the same page?"
+    a: "Use a regex delimiter that covers both cases. For example, delimiter=r'\\s*[,;]\\s*' handles both commas and semicolons. If the variation is too unpredictable, a custom Validators method gives you full control."
+  - q: "What if the AI discovers the wrong selector for a list field?"
+    a: "Pin it with selector='a.tag' on the field. This bypasses discovery for that field while letting the AI handle the rest."
+  - q: "What is returned if no elements match?"
+    a: "An empty list []. If you need to treat an empty list as a validation error, add a validator that checks the length."
 ---
 
 Declare a field as `list[T]` when a page contains several values for the same slot -- tags, prices, categories, authors. Yosoi handles two common DOM patterns automatically.

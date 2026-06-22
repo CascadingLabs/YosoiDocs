@@ -1,6 +1,13 @@
 ---
 title: Nested Contracts
 description: Use Contract-typed fields to model structured sub-sections of a page.
+faqs:
+  - q: "Can I nest more than one level deep?"
+    a: "Yes. A nested contract can itself contain Contract-typed fields. Keys are flattened recursively: parent_child_grandchild. Keep nesting shallow (two levels max) to avoid discovery prompts that are hard for the LLM to follow."
+  - q: "What happens if the nested root selector doesn't match?"
+    a: "If a pinned root doesn't match any element on the page, all child fields return None. Run with --debug and inspect the HTML to verify the container exists. If the site layout changed, update the pinned root or switch to ys.discover()."
+  - q: "Can I mix nested contracts with list fields?"
+    a: "Yes. A field typed as list[ChildContract] works the same as list[str] -- Yosoi extracts multiple instances of the child structure. Each instance is flattened for discovery and re-nested during extraction."
 ---
 
 Target: [Mountainhome Herald](https://qscrape.dev/l1/news) (QScrape L1)

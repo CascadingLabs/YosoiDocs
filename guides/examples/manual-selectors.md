@@ -1,11 +1,20 @@
 ---
 title: Manual Selectors
 description: Pin CSS selectors on individual fields to skip AI discovery where you already know the answer.
+faqs:
+  - q: "What happened to hint?"
+    a: "hint was removed. Put field meaning and discovery guidance in description, for example description='Product category, usually in a breadcrumb or sidebar label'."
+  - q: "Are pinned selectors cached?"
+    a: "No. Pinned selectors are defined in the contract and used directly at extraction time. They are not written to .yosoi/selectors/. If you change a pinned selector in your code, the new value is used immediately on the next run."
+  - q: "What happens if a pinned selector stops matching?"
+    a: "Extraction returns None for that field. Unlike AI-discovered selectors, pinned selectors are not re-discovered automatically -- you need to update the contract. Annotate optional fields as T | None if you want graceful handling."
+  - q: "Can I pin with XPath instead of CSS?"
+    a: "For root, yes -- use ys.xpath('//div[@class=\"item\"]'). For individual fields, selector= currently takes a CSS selector string. If you need XPath for a specific field, leave it for AI discovery and guide it with description."
 ---
 
 Target: [Eldoria Registry of Deeds](https://qscrape.dev/l1/taxes) (QScrape L1)
 
-Sometimes you already know the right selector for one or more fields. Yosoi lets you pin selectors per field -- pinned fields skip AI discovery entirely, while the rest are still discovered automatically. This is useful when:
+Start with selector-free contracts when you can. Manual selectors are an advanced escape hatch for pages where you already know the right selector for one or more fields. Yosoi lets you pin selectors per field -- pinned fields skip AI discovery entirely, while the rest are still discovered automatically. This is useful when:
 
 - The AI consistently picks the wrong selector for a specific field
 - You want deterministic extraction for critical fields
@@ -31,8 +40,8 @@ class TaxRecord(ys.Contract):
 async def main():
     pipeline = ys.Pipeline(policy=ys.Policy.from_env(), contract=TaxRecord)
 
-    async for item in pipeline.scrape('https://qscrape.dev/l1/taxes'):
-        print(item.get('owner'), item.get('assessed_value'))
+    rows = [item async for item in pipeline.scrape('https://qscrape.dev/l1/taxes')]
+    ys.show(rows)
 
 asyncio.run(main())
 ```

@@ -1,6 +1,15 @@
 ---
 title: Concurrent Scraping
 description: Process multiple URLs in parallel with the Pipeline.
+faqs:
+  - q: "How many workers should I use?"
+    a: "Start with 3 to 5. Higher counts can trigger rate limiting from both the target site and your LLM provider. The right number depends on your provider's rate limits and the target site's tolerance."
+  - q: "What happens if one URL fails?"
+    a: "It is added to the failed list and the rest continue. Exceptions are caught per-URL and do not abort the batch."
+  - q: "Does concurrency affect selector discovery?"
+    a: "Yes, in a good way. If multiple URLs share a domain that has not been discovered yet, one worker runs discovery while the others wait. Once cached, all workers use the result."
+  - q: "Can I retry failed URLs automatically?"
+    a: "Not built-in. After process_urls() returns, pass results[\"failed\"] back into another process_urls() call to retry."
 ---
 
 `Pipeline.process_urls()` accepts a list of URLs and a `workers` argument. When `workers > 1`, a Rich<sup>[△](#ref-1)</sup> Live progress table appears automatically. No extra setup required.
@@ -24,7 +33,7 @@ async def main() -> None:
         init_yosoi()
 
     policy = ys.Policy.from_env()  # picks up YOSOI_MODEL / provider keys from .env
-    pipeline = Pipeline(config, contract=ys.NewsArticle)
+    pipeline = Pipeline(policy=policy, contract=ys.NewsArticle)
 
     results = await pipeline.process_urls(URLS, workers=3)
     print(f'Done: {len(results["successful"])} succeeded, {len(results["failed"])} failed')

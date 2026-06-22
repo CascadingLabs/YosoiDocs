@@ -1,12 +1,27 @@
 ---
 title: Scaling
 description: Running Yosoi at scale with queues, observability, and distributed storage.
+faqs:
+  - q: "What is the first scaling knob I should use?"
+    a: "Start with --workers or Pipeline.process_urls(..., workers=N). Increase slowly while watching target-site rate limits and LLM-provider limits."
+  - q: "Do I need Redis or RabbitMQ to run batches?"
+    a: "No. Current concurrent processing runs inside one Python process. External queues are planned for multi-machine orchestration."
+  - q: "How do I share selector discoveries across machines today?"
+    a: "Share the .yosoi/selectors/ directory through your deployment artifact or storage layer. Native distributed selector storage is still roadmap work."
 ---
 
-### *Feature and documentation planned.*
+Yosoi scales today by combining local selector caches, concurrent workers, browser fetchers, and observability. Larger distributed caches and external queue integrations are planned, but they are not required for ordinary batch scraping.
 
----
-Yosoi is designed to scale beyond a single machine. The integrations below are planned or in progress:
+## Current Support
+
+- Use `Pipeline.process_urls(..., workers=N)` or the CLI `--workers` flag for concurrent URL processing.
+- Use `.yosoi/selectors/` as the local selector cache and `.yosoi/fetch/` as the learned fetcher strategy cache.
+- Use [Observability](/observability/) when you need traces for discovery, extraction, and model behavior.
+- Keep one shared fetcher instance per batch when you are writing Python orchestration code.
+
+## Planned Integrations
+
+The integrations below are planned or in progress:
 
 | Integration | Role |
 |-------------|------|
@@ -17,7 +32,30 @@ Yosoi is designed to scale beyond a single machine. The integrations below are p
 | **Persistence** | Durable result storage across runs |
 | **Turso**<sup>[★](#ref-5)</sup> | Embedded distributed SQLite for selector snapshots |
 
-More integrations TBD.
+Treat these as roadmap items until a guide documents a concrete configuration.
+
+## FAQs
+
+<details>
+<summary>What is the first scaling knob I should use?</summary>
+
+Start with `--workers` or `Pipeline.process_urls(..., workers=N)`. Increase slowly while watching target-site rate limits and LLM-provider limits.
+
+</details>
+
+<details>
+<summary>Do I need Redis or RabbitMQ to run batches?</summary>
+
+No. Current concurrent processing runs inside one Python process. External queues are planned for multi-machine orchestration.
+
+</details>
+
+<details>
+<summary>How do I share selector discoveries across machines today?</summary>
+
+Share the `.yosoi/selectors/` directory through your deployment artifact or storage layer. Native distributed selector storage is still roadmap work.
+
+</details>
 
 ## References
 

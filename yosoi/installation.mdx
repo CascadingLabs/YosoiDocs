@@ -1,6 +1,15 @@
 ---
 title: Installation
 description: How to install Yosoi and set up your environment.
+faqs:
+  - q: "Can I use pip instead of uv?"
+    a: "Yes. pip install yosoi works fine. The docs use uv because it is faster and handles virtual environments automatically, but there is no hard dependency on it."
+  - q: "Do I need all of these API keys?"
+    a: "No. One is enough. Yosoi supports 25+ providers -- these five are just the most common. If multiple keys are present, set YOSOI_MODEL to specify which provider and model to use (e.g. groq:llama-3.3-70b-versatile)."
+  - q: "Where should I put my .env file?"
+    a: "In your project root, next to pyproject.toml. Yosoi loads it automatically via python-dotenv. Do not commit it to version control."
+  - q: "What Python versions are supported?"
+    a: "Python 3.10 and above. Earlier versions are not supported due to use of modern type hint syntax."
 ---
 
 import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';

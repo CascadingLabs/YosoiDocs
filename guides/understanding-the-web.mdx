@@ -1,6 +1,15 @@
 ---
 title: Understanding the Web
 description: How HTML, the DOM, and JavaScript frameworks affect what Yosoi can see and extract.
+faqs:
+  - q: "Can Yosoi scrape single-page apps (L2 sites)?"
+    a: "Yes, when you use --fetcher auto, --fetcher headless, or --fetcher headful. Static HTML remains fastest, but browser-backed fetchers let Yosoi run discovery against rendered DOM when the source HTML is only an app shell."
+  - q: "Why do class names change between deploys on framework-based sites?"
+    a: "Build tools like webpack and Vite generate hashed class names to enable long-term caching. A deploy changes the hash, which invalidates any selector that targets that class. Yosoi's LLM-based discovery tries to avoid these by preferring stable attributes (IDs, data attributes, semantic tags), but it is not guaranteed."
+  - q: "What is the practical difference between L2 and L3 difficulty?"
+    a: "L2 adds frontend framework complexity but does not try to block you. L3 actively resists scraping. A tool that works on L2 will not necessarily work on L3."
+  - q: "Should I test against QScrape sites before hitting my real targets?"
+    a: "Yes. It is a fast way to verify your pipeline is wired up correctly before sending requests to sites you do not control."
 ---
 
 import { Card } from '@astrojs/starlight/components';
@@ -11,11 +20,11 @@ Not all websites are equally easy to scrape. Understanding why helps you choose 
 
 When you load a page in a browser, the browser parses the raw HTML and constructs a live tree of objects called the DOM<sup>[△](#ref-1)</sup> (Document Object Model). JavaScript can then modify that tree: adding nodes, removing them, rewriting text content, injecting entire components. What you see on screen may look nothing like the original HTML the server sent.
 
-Yosoi fetches the raw HTML (for now). It sees what the server returns, not what JavaScript builds after the fact. For most news sites, blogs, and product catalogues this is fine. The content is in the HTML. For single-page apps that load data after the initial render, Yosoi will get a mostly-empty shell.
+Yosoi can work at both layers. The simple fetcher reads the raw server HTML, while the default `auto` fetcher can promote to browser-backed tiers that render the DOM through VoidCrawl and DOMLoader. For most news sites, blogs, and product catalogues, simple HTML is enough. For single-page apps that load data after the initial render, use `--fetcher auto`, `--fetcher headless`, or a policy with `ScrapePolicy(fetcher_type='auto')`.
 
-If you can view the page source in your browser and see the text you want to extract, Yosoi can work with it. If the content only appears after JavaScript runs, render the page yourself with Playwright<sup>[○](#ref-2)</sup> or Puppeteer<sup>[◑](#ref-3)</sup> and pass the HTML to Yosoi directly. This is the difference between page source (`Cmd+U` / `Ctrl+U`) and using the inspect tool to view the DOM (`Cmd+Shift+I` / `Ctrl+Shift+I`)
+If you can view the page source in your browser and see the text you want to extract, the simple tier can work with it. If the content only appears after JavaScript runs, use a browser fetcher so discovery sees the rendered DOM. This is the difference between page source (`Cmd+U` / `Ctrl+U`) and using the inspect tool to view the DOM (`Cmd+Shift+I` / `Ctrl+Shift+I`).
 
-A native DOM fetcher that handles this automatically is on the [Roadmap](/roadmap/), but is not available yet.
+See [Fetchers](/guides/fetchers/), [DOMLoader](/guides/dom-loader/), and [MCP Discovery](/guides/mcp-discovery/) for the current browser-backed paths.
 
 ## Difficulty Levels
 
@@ -29,9 +38,9 @@ These are the easiest targets. [QScrape L1 sites](https://qscrape.dev) simulate 
 
 ### L2: SPAs and data-driven dynamic sites
 
-Single-page applications (SPAs) and sites that load content after the initial HTML render. The server sends a minimal shell; JavaScript fetches data and injects it into the DOM. By the time the page looks right in a browser, the raw HTML Yosoi fetched may be largely empty.
+Single-page applications (SPAs) and sites that load content after the initial HTML render. The server sends a minimal shell; JavaScript fetches data and injects it into the DOM. By the time the page looks right in a browser, raw source HTML may be largely empty.
 
-For L2 sites, render the page yourself with a headless browser (Playwright<sup>[○](#ref-2)</sup>, Puppeteer<sup>[◑](#ref-3)</sup>, etc.) and pass the resulting HTML to Yosoi. Discovery works against the rendered output the same way it works against static HTML.
+For L2 sites, use the default `auto` fetcher first. If you need to force a browser tier, use `--fetcher headless` or `--fetcher headful`. Discovery works against the rendered output the same way it works against static HTML.
 
 <Card title="Why QScrape tests four frameworks">
 
@@ -75,7 +84,7 @@ Because QScrape sites are controlled and stable, they are ideal for CI. Point Yo
 <details>
 <summary>Can Yosoi scrape single-page apps (L2 sites)?</summary>
 
-Not directly right now. Yosoi fetches raw HTML, which is mostly empty for SPAs. Render the page yourself with a headless browser (Playwright, Puppeteer) and pass the rendered HTML to Yosoi. A native DOM fetcher is on the [Roadmap](/roadmap/) but not available yet.
+Yes, when you use `--fetcher auto`, `--fetcher headless`, or `--fetcher headful`. Static HTML remains fastest, but browser-backed fetchers let Yosoi run discovery against rendered DOM when the source HTML is only an app shell.
 
 </details>
 

@@ -1,6 +1,15 @@
 ---
 title: Validators
 description: Transform and normalise extracted values without boilerplate.
+faqs:
+  - q: "Can I raise an error inside a Validators method?"
+    a: "Yes. Raise a standard ValueError and Pydantic will wrap it into a ValidationError as usual."
+  - q: "Do validators run on list[T] fields element-by-element?"
+    a: "No. The validator receives the full list as its argument. If you need per-element processing, iterate inside the method."
+  - q: "Can I use async validators?"
+    a: "No. Validators methods must be synchronous static methods. For async post-processing, handle it after model_validate() returns."
+  - q: "What is the execution order?"
+    a: "Validators methods run first, then built-in type coercions, then Pydantic's own validation. This means your custom transforms see the raw extracted string before any coercion has been applied."
 ---
 
 Yosoi offers two layers of field-level validation: built-in type coercions that handle the common cases, and a `Validators` inner class for custom transforms.

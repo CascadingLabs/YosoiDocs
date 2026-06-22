@@ -1,6 +1,15 @@
 ---
 title: DOMLoader
 description: Drive JavaScript-heavy pages to a fully-loaded state before selector discovery.
+faqs:
+  - q: "When should I use the waterfall instead of the simple fetcher?"
+    a: "Use waterfall when you're scraping a mix of static and dynamic pages and don't want to think about which is which. It adds latency on static pages (one failed Chrome attempt before returning the plain HTTP result) but is otherwise transparent. For known dynamic sites, use headless or headful directly."
+  - q: "My page loads content but DOMLoader doesn't find it. What's wrong?"
+    a: "Run with --debug to save the HTML that Yosoi sees after DOMLoader finishes. If the content is present, the issue is with selector discovery -- not loading. If the content is absent, the page likely uses a trigger pattern not covered by the current catalogues (catalogues.py). Check which patterns DOMLoader probes for and compare against what the page actually uses."
+  - q: "Can I use DOMLoader without the full waterfall?"
+    a: "Yes -- ScrapePolicy(fetcher_type='headless') or ScrapePolicy(fetcher_type='headful') use DOMLoader directly without the Simple HTTP tier."
+  - q: "Does DOMLoader interact with authenticated pages?"
+    a: "Not currently. DOMLoader probes for publicly-observable DOM patterns (cookie banners, load-more buttons). It does not handle login forms, session cookies, or authentication flows. Pass pre-authenticated HTML to Yosoi if the target requires login."
 ---
 
 Yosoi's static HTML fetcher handles most sites -- content is in the server response, and CSS selectors work immediately. For pages that require JavaScript to render content (single-page apps, infinite scroll feeds, accordion-gated data), Yosoi ships a browser-backed fetcher tier that drives the page to a fully-loaded state before discovery begins.
