@@ -72,9 +72,9 @@ Each action ends with `WaitForDOMStable` -- a `MutationObserver` that resolves a
 Browser-backed fetching is available through three fetcher types. Pass `--fetcher` on the CLI or `ScrapePolicy(fetcher_type=...)` in Python:
 
 ```bash
-uv run yosoi --url https://example.com --fetcher waterfall
-uv run yosoi --url https://example.com --fetcher headless
-uv run yosoi --url https://example.com --fetcher headful
+uvx yosoi --url https://example.com --fetcher waterfall
+uvx yosoi --url https://example.com --fetcher headless
+uvx yosoi --url https://example.com --fetcher headful
 ```
 
 ```python

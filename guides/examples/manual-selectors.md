@@ -57,7 +57,7 @@ uv run python taxes.py
 Or from the CLI:
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/taxes --contract taxes.py:TaxRecord --output json
+uvx yosoi --url https://qscrape.dev/l1/taxes --contract taxes.py:TaxRecord --output json
 ```
 
 ## Pinning on Type Factories

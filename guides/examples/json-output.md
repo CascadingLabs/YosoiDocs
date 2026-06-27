@@ -8,13 +8,13 @@ Set `OutputPolicy(formats=...)` in Python (or `--output` on the CLI) to persist 
 ## CLI
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/news --contract NewsArticle --output json
+uvx yosoi --url https://qscrape.dev/l1/news --contract NewsArticle --output json
 ```
 
 Combine multiple formats in one run:
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/news --contract NewsArticle --output json,csv
+uvx yosoi --url https://qscrape.dev/l1/news --contract NewsArticle --output json,csv
 ```
 
 ## Python

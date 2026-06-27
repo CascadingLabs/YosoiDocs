@@ -1,0 +1,76 @@
+---
+title: Policy
+description: Configure Yosoi with one serializable policy tree instead of scattered flags.
+faqs:
+  - q: "Should I wrap policy files in yosoi: policy:?"
+    a: "No. Policy files use the Policy shape directly. Top-level keys are fields like model, scrape, page, crawl, output, and download."
+  - q: "Are secrets stored in policy files?"
+    a: "No. Put secret values in environment variables. Policy files can point at env var names through credential_ref or telemetry secret refs."
+  - q: "Which policy layer wins?"
+    a: "Higher-precedence layers win. The normal CLI order is env, global files, project files, explicit --policy files or inline snippets, then direct CLI flags."
+---
+
+Yosoi policy is the control plane for how a scrape or crawl runs. It covers model selection, fetch behavior, discovery, output, downloads, crawl limits, telemetry, and trust gates.
+
+A policy is a frozen Pydantic object in Python and a JSON/YAML document on disk. The same shape works in both places.
+
+```yaml
+atom_reads: false
+trust_tier: strict
+scrape:
+  fetcher_type: auto
+output:
+  formats: [json]
+  flat_files: false
+page:
+  timeout_seconds: 30
+```
+
+## Why policy exists
+
+Yosoi has many knobs, but they are not all contract fields. A contract defines what data means. Policy defines how Yosoi is allowed to get it.
+
+Use policy for:
+
+- model and provider settings
+- cache and trust gates
+- fetcher and page acquisition behavior
+- crawl limits and safety controls
+- output shape and debug artifacts
+- download permissions
+- observability settings
+
+## Policy surfaces
+
+| Surface | Use it for |
+|---|---|
+| Python `ys.Policy(...)` | Library code, tests, per-call overrides. |
+| `Policy.from_env()` | Legacy env compatibility and secrets. |
+| JSON/YAML policy files | Global/project defaults and repeatable CLI runs. |
+| CLI flags | Narrow call-site overrides. |
+
+## Main sections
+
+| Section | Purpose |
+|---|---|
+| `model` | Provider, model name, temperature, token cap, credential reference. |
+| `scrape` | Replay/discovery behavior for one scrape run. |
+| `page` | Generic page acquisition settings shared by scrape and crawl. |
+| `crawl` | Crawl budget, scheduler, safety, escalation, and targets. |
+| `output` | Terminal/file output, debug HTML, logs, flat files. |
+| `download` | Default-deny file download side effects. |
+| `discovery` | Selector discovery backend and concurrency. |
+| `telemetry` | Langfuse references and host. |
+| `fingerprint` | Off-path fingerprint signal lane. |
+
+## Quick commands
+
+```bash
+uvx yosoi policy init --local
+uvx yosoi policy validate .yosoi/policy.yaml
+uvx yosoi policy inspect .yosoi/policy.yaml --format yaml
+uvx yosoi policy effective --format yaml
+uvx yosoi scrape https://example.com --policy .yosoi/policy/20-page.yaml
+```
+
+Start with [Policy Files](/policy/files/) and [Layering & Precedence](/policy/layering/), then use the section reference pages for individual options.

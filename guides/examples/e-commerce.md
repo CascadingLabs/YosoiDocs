@@ -12,7 +12,7 @@ This example extracts product names, prices, and ratings from a catalogue page. 
 The built-in `Product` contract extracts name, price, rating, reviews count, description, and availability:
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/eshop --contract Product --output json
+uvx yosoi --url https://qscrape.dev/l1/eshop --contract Product --output json
 ```
 
 ## Python
@@ -53,7 +53,7 @@ The most common failure mode is a repeating container that's too broad or too na
 Run with `--debug` to save the extracted HTML for inspection:
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/eshop --contract products_auto.py:Product --debug
+uvx yosoi --url https://qscrape.dev/l1/eshop --contract products_auto.py:Product --debug
 ```
 
 Snapshots are saved to `.yosoi/debug_html/`.

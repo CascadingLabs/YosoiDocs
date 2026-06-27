@@ -71,7 +71,7 @@ uv run python article_with_author.py
 Or from the CLI with a custom contract:
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/news --contract article_with_author.py:Article --output json
+uvx yosoi --url https://qscrape.dev/l1/news --contract article_with_author.py:Article --output json
 ```
 
 ## With vs. Without a Pinned Root

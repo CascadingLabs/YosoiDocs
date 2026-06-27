@@ -12,7 +12,7 @@ This example extracts match results from an esports scoreboard. The contract use
 There is no built-in contract for sports scores, so save the contract to a file and point the CLI at it:
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/scoretap --contract scores.py:Match --output json
+uvx yosoi --url https://qscrape.dev/l1/scoretap --contract scores.py:Match --output json
 ```
 
 ## Python

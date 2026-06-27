@@ -26,7 +26,7 @@ faqs:
 | `YOSOI_MODEL` | Optional | Default model in `provider:model` format (e.g. `groq:llama-3.3-70b-versatile`). Read by `Policy.from_env()`. |
 | `YOSOI_FORCE` | Optional | Truthy value forces rediscovery instead of replaying the cached contract. Read into `ScrapePolicy.force`. |
 | `YOSOI_FETCHER_TYPE` | Optional | Default fetch tier: `auto`, `simple`, `headless`, `headful`, `waterfall`. Read into `ScrapePolicy.fetcher_type`. |
-| `YOSOI_SELECTOR_LEVEL` | Optional | Default selector strategy (e.g. `css`, `xpath`). Read into `ScrapePolicy.selector_level`. |
+| `YOSOI_SELECTOR_LEVEL` | Optional | Default selector ceiling (e.g. `all`, `css`, `xpath`, `role`). Defaults to `all`; read into `ScrapePolicy.selector_level`. |
 | `YOSOI_DISCOVERY_MODE` | Optional | Discovery mode: `auto`, `static`, `mcp`. Read into `DiscoveryPolicy.mode`. |
 | `YOSOI_CROSS_ORIGIN_DOM` | Optional | Truthy value opts browser fetchers into cross-origin DOM access (see [Cross-origin DOM access](#cross-origin-dom-access)). Read into `ScrapePolicy.cross_origin_dom`. Default off. |
 | `YOSOI_LOG_LEVEL` | Optional | Logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `ALL` (default: `DEBUG`) |

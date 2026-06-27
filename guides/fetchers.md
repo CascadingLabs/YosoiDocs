@@ -27,7 +27,7 @@ Yosoi fetches HTML before selector discovery and extraction. Every fetch goes th
 `auto` is the default because it keeps static pages cheap without making JavaScript-rendered pages a separate workflow. It begins with simple HTTP and uses the same browser-backed tiers as the waterfall when the probe or page result shows that static HTML is not enough.
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/news --contract NewsArticle
+uvx yosoi --url https://qscrape.dev/l1/news --contract NewsArticle
 ```
 
 ```python
@@ -62,7 +62,7 @@ Tries three tiers in order and stops at the first that succeeds:
 The winning tier for each domain is cached in `.yosoi/fetch/`. On the next run, the waterfall is skipped entirely -- Yosoi jumps straight to the cached tier.
 
 ```bash
-uv run yosoi --url https://finance.yahoo.com --contract NewsArticle --fetcher waterfall
+uvx yosoi --url https://finance.yahoo.com --contract NewsArticle --fetcher waterfall
 ```
 
 ```python
@@ -134,7 +134,7 @@ rm .yosoi/fetch/fetch_finance_yahoo_com.json
 Or pass `--force` to also re-run selector discovery:
 
 ```bash
-uv run yosoi --url https://finance.yahoo.com --contract NewsArticle --fetcher waterfall --force
+uvx yosoi --url https://finance.yahoo.com --contract NewsArticle --fetcher waterfall --force
 ```
 
 ## Using a Shared Fetcher Across URLs

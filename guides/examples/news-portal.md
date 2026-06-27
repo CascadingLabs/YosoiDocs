@@ -12,13 +12,13 @@ This example extracts article headlines, authors, dates, and URLs from a news po
 The built-in `NewsArticle` contract extracts headlines, authors, dates, body text, and related content. No custom contract needed.
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/news --contract NewsArticle --output json
+uvx yosoi --url https://qscrape.dev/l1/news --contract NewsArticle --output json
 ```
 
 To save only specific output formats:
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/news --contract NewsArticle --output json,csv
+uvx yosoi --url https://qscrape.dev/l1/news --contract NewsArticle --output json,csv
 ```
 
 ## Python
@@ -57,7 +57,7 @@ uv run python news.py
 You can also use a custom contract from the CLI by pointing to the file:
 
 ```bash
-uv run yosoi --url https://qscrape.dev/l1/news --contract news.py:Article
+uvx yosoi --url https://qscrape.dev/l1/news --contract news.py:Article
 ```
 
 ## What to Expect

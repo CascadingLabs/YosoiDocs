@@ -34,7 +34,7 @@ GROQ_KEY=your_groq_api_key
 Run discovery and extraction from the terminal without writing any Python.
 
 ```bash
-uv run yosoi -m groq:llama-3.3-70b-versatile --url https://qscrape.dev/l1/eshop/catalog/?cat=Forge%20%26%20Smithing --contract Product
+uvx yosoi -m groq:llama-3.3-70b-versatile --url https://qscrape.dev/l1/eshop/catalog/?cat=Forge%20%26%20Smithing --contract Product
 ```
 
 Yosoi fetches the page, asks the LLM to identify selectors, validates them, and saves the result to `.yosoi/`. Run the same command again and it reads from cache.
@@ -51,7 +51,7 @@ Yosoi fetches the page, asks the LLM to identify selectors, validates them, and 
 | `--workers`, `-w` | Number of concurrent workers for batch processing |
 | `--force`, `-F` | Force re-discovery even if selectors exist |
 | `--debug`, `-d` | Save extracted HTML to `.yosoi/debug_html/` |
-| `--selector-level`, `-x` | Max selector strategy: `css`, `xpath`, `regex`, `jsonld`, `all` (default: `css`) |
+| `--selector-level`, `-x` | Max selector strategy: `css`, `xpath`, `regex`, `jsonld`, `attr`, `global_id`, `role`, `visual`, `all` (default: `all`) |
 
 ## Option 2: Python script
 

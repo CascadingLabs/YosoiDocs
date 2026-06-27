@@ -17,13 +17,13 @@ https://qscrape.dev/l1/eshop
 ```
 
 ```bash
-uv run yosoi --file urls.txt --contract NewsArticle --workers 3 --output json
+uvx yosoi --file urls.txt --contract NewsArticle --workers 3 --output json
 ```
 
 For ad hoc discovery runs, the `discover` subcommand also accepts multiple positional URLs:
 
 ```bash
-uv run yosoi discover https://qscrape.dev/l1/news https://qscrape.dev/l1/eshop --contract NewsArticle --workers 2
+uvx yosoi discover https://qscrape.dev/l1/news https://qscrape.dev/l1/eshop --contract NewsArticle --workers 2
 ```
 
 ## Python

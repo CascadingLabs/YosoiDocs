@@ -10,7 +10,7 @@ When something goes wrong, Yosoi gives you a few tools to figure out what happen
 Pass `--debug` (or `-d`) to the CLI, or set `OutputPolicy(debug_html=True)`, to save a snapshot of the HTML that was sent to the LLM:
 
 ```bash
-uv run yosoi --url https://qscrape.dev --contract Product --debug
+uvx yosoi --url https://qscrape.dev --contract Product --debug
 ```
 
 ```python
@@ -59,7 +59,7 @@ See [E-Commerce Catalogue: Automatic vs. Pinned Root](/guides/examples/e-commerc
 **Fix:** Force re-discovery to clear the cached selectors for that domain:
 
 ```bash
-uv run yosoi --url https://qscrape.dev --contract Product --force
+uvx yosoi --url https://qscrape.dev --contract Product --force
 ```
 
 ```python
