@@ -29,6 +29,12 @@ faqs:
 | `YOSOI_SELECTOR_LEVEL` | Optional | Default selector ceiling (e.g. `all`, `css`, `xpath`, `role`). Defaults to `all`; read into `ScrapePolicy.selector_level`. |
 | `YOSOI_DISCOVERY_MODE` | Optional | Discovery mode: `auto`, `static`, `mcp`. Read into `DiscoveryPolicy.mode`. |
 | `YOSOI_CROSS_ORIGIN_DOM` | Optional | Truthy value opts browser fetchers into cross-origin DOM access (see [Cross-origin DOM access](#cross-origin-dom-access)). Read into `ScrapePolicy.cross_origin_dom`. Default off. |
+| `YOSOI_SEARCH_BACKEND` | Optional | Default DDGS backend string, such as `google,bing,brave`. Read into `SearchPolicy.backend`. |
+| `YOSOI_SEARCH_REGION` | Optional | Default search region, such as `us-en`. Read into `SearchPolicy.region`. |
+| `YOSOI_SEARCH_SAFESEARCH` | Optional | Search safesearch setting: `on`, `moderate`, or `off`. Read into `SearchPolicy.safesearch`. |
+| `YOSOI_SEARCH_MAX_RESULTS` | Optional | Default result limit for `ys.search` and `yosoi search`. Read into `SearchPolicy.max_results`. |
+| `YOSOI_SEARCH_PAGE` | Optional | Default search results page. Read into `SearchPolicy.page`. |
+| `YOSOI_SEARCH_TIMELIMIT` | Optional | Default DDGS time limit such as `d`, `w`, `m`, or `y`. Read into `SearchPolicy.timelimit`. |
 | `YOSOI_LOG_LEVEL` | Optional | Logging level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `ALL` (default: `DEBUG`) |
 | `YOSOI_SESSION_ID` | Optional | Override the auto-generated Langfuse session id for this process. Equivalent to the `--session-id` CLI flag. |
 | `LANGFUSE_PUBLIC_KEY` | Optional | Langfuse<sup>[⬡](#ref-6)</sup> project public key. Enables observability when set together with the secret key. |
@@ -60,7 +66,7 @@ For the full picture (boot script, Python config, span tree, eval tagging) see t
 
 ## Policy
 
-`ys.Policy` is the public configuration surface. It is a frozen, serializable tree that can include model selection, scrape behavior, discovery settings, telemetry, output formats, downloads, crawl policy, and atom trust settings. Raw secrets are not stored in the policy artifact. Use `ys.SecretRef.env(...)` to point at a secret and let Yosoi resolve it into a runtime-only `ResolvedRunSpec`.
+`ys.Policy` is the public configuration surface. It is a frozen, serializable tree that can include model selection, scrape behavior, search defaults, discovery settings, telemetry, output formats, downloads, crawl policy, and atom trust settings. Raw secrets are not stored in the policy artifact. Use `ys.SecretRef.env(...)` to point at a secret and let Yosoi resolve it into a runtime-only `ResolvedRunSpec`.
 
 ```python
 import yosoi as ys
@@ -78,6 +84,7 @@ policy = ys.Policy.cascade(
             selector_level=ys.SelectorLevel.XPATH,
         ),
         discovery=ys.DiscoveryPolicy(max_concurrent=3),
+        search=ys.SearchPolicy(backend='google,bing,brave', max_results=10),
         telemetry=ys.TelemetryPolicy(
             langfuse_public_key_ref=ys.SecretRef.env('LANGFUSE_PUBLIC_KEY'),
             langfuse_secret_key_ref=ys.SecretRef.env('LANGFUSE_SECRET_KEY'),
@@ -90,7 +97,7 @@ policy = ys.Policy.cascade(
 rows = await ys.scrape(url, YourContract, policy=policy)
 ```
 
-`Policy.from_env()` reads the environment variables above, including `YOSOI_MODEL`, `YOSOI_FORCE`, `YOSOI_DISCOVERY_MODE`, `YOSOI_ATOM_READS`, `YOSOI_ATOM_TRUST`, and Langfuse settings. `Policy.cascade(...)` merges layers from lowest to highest precedence, so a call-site policy can override env defaults without mutating global state.
+`Policy.from_env()` reads the environment variables above, including `YOSOI_MODEL`, `YOSOI_FORCE`, `YOSOI_DISCOVERY_MODE`, `YOSOI_SEARCH_*`, `YOSOI_ATOM_READS`, `YOSOI_ATOM_TRUST`, and Langfuse settings. `Policy.cascade(...)` merges layers from lowest to highest precedence, so a call-site policy can override env defaults without mutating global state.
 
 ### Providing the API key
 

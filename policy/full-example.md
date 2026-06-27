@@ -34,6 +34,16 @@ discovery:
   replay_verify_threshold: 1.0
   static_mode_warning: true
 
+search:
+  kind: text
+  provider: ddgs
+  backend: google,bing,brave
+  region: us-en
+  safesearch: "moderate"
+  max_results: 10
+  page: 1
+  timelimit: null
+
 telemetry:
   langfuse_public_key_ref:
     source: env

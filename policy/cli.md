@@ -86,12 +86,13 @@ Skip global/project discovery:
 uvx yosoi policy effective --no-discover --policy .yosoi/policy/test.yaml
 ```
 
-## Scrape, discover, and crawl
+## Scrape, search, discover, and crawl
 
 Most run commands accept `--policy`:
 
 ```bash
 uvx yosoi scrape https://example.com --policy .yosoi/policy.yaml
+uvx yosoi search "cascading labs yosoi" --policy 'search: {backend: "google,bing,brave", max_results: 5}'
 uvx yosoi discover https://example.com --policy 'scrape: {fetcher_type: headless}'
 uvx yosoi crawl https://example.com --policy .yosoi/policy/crawl/10-budget.yaml
 ```

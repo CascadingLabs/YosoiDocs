@@ -37,7 +37,7 @@ Run discovery and extraction from the terminal without writing any Python.
 uvx yosoi -m groq:llama-3.3-70b-versatile --url https://qscrape.dev/l1/eshop/catalog/?cat=Forge%20%26%20Smithing --contract Product
 ```
 
-Yosoi fetches the page, asks the LLM to identify selectors, validates them, and saves the result to `.yosoi/`. Run the same command again and it reads from cache.
+Yosoi fetches the page, asks the LLM to identify selectors, validates them, and saves the result to `.yosoi/`. Run the same command again and it reads from cache. For machine output, prefer the explicit `scrape` command with `--json`.
 
 ### CLI flags
 
@@ -62,16 +62,16 @@ import asyncio
 import yosoi as ys
 
 
-# This Contract is actually built-in, you can import from yosoi.models.defaults!
+# This Contract is actually built-in as ys.Product.
 class Product(ys.Contract):
     """Contract for e-commerce product pages."""
 
     name: str = ys.Title(description='Product name or title')
-    price: float | None = ys.Price(description='Product price (including currency symbol)')
-    rating: float | None = ys.Rating(as_float=True, description='Star rating or review score (numeric, e.g. 4.2)')
+    price: float | None = ys.Price(description='Product price including currency symbol')
+    rating: float | None = ys.Rating(as_float=True, description='Star rating or review score')
     reviews_count: int | None = ys.Field(description='Number of reviews or ratings')
     description: str = ys.BodyText(description='Product description or summary')
-    availability: str = ys.Field(description='Stock status (e.g. "In Stock", "Out of Stock")')
+    availability: str = ys.Field(description='Stock status')
 
 async def main():
     policy = ys.Policy.cascade(
@@ -82,19 +82,22 @@ async def main():
         ),
     )
 
-    rows = await ys.scrape(
+    result = await ys.scrape(
         'https://qscrape.dev/l1/eshop/catalog/?cat=Forge%20%26%20Smithing',
         Product,
         policy=policy,
     )
-    ys.show(rows)
+
+    for unit in result.results:
+        print(unit.status, unit.record_count, unit.cache_decision)
+        ys.show(unit.records)
 
 asyncio.run(main())
 ```
 
 >[!Note] As long as you set your key in `.env`, `Policy.from_env()` picks it up and this example can be run as is.
 
-Discovery only happens once per domain. Subsequent calls read from the local cache with no LLM calls and no cost.
+Discovery only happens once per domain. Subsequent calls read from the local cache with no LLM calls and no cost. See [Operations API](/yosoi/operations/) for typed `ScrapeResult`, `SearchResult`, `CrawlResult`, and `MapResult` envelopes.
 
 ## What Just Happened?
 
@@ -109,7 +112,7 @@ Hopefully your terminal explained most of it, but here is the rundown:
 
 4. Selectors were validated against the page and cached in `.yosoi/selectors/`
 
-5. Data was extracted using the cached selectors and rendered with `ys.show(...)`
+5. Data was extracted using the cached selectors and returned as a `ScrapeResult` with one unit per URL and contract
 
 </Steps>
 

@@ -3,14 +3,14 @@ title: Policy
 description: Configure Yosoi with one serializable policy tree instead of scattered flags.
 faqs:
   - q: "Should I wrap policy files in yosoi: policy:?"
-    a: "No. Policy files use the Policy shape directly. Top-level keys are fields like model, scrape, page, crawl, output, and download."
+    a: "No. Policy files use the Policy shape directly. Top-level keys are fields like model, scrape, search, page, crawl, output, and download."
   - q: "Are secrets stored in policy files?"
     a: "No. Put secret values in environment variables. Policy files can point at env var names through credential_ref or telemetry secret refs."
   - q: "Which policy layer wins?"
     a: "Higher-precedence layers win. The normal CLI order is env, global files, project files, explicit --policy files or inline snippets, then direct CLI flags."
 ---
 
-Yosoi policy is the control plane for how a scrape or crawl runs. It covers model selection, fetch behavior, discovery, output, downloads, crawl limits, telemetry, and trust gates.
+Yosoi policy is the control plane for how a scrape, search, or crawl runs. It covers model selection, fetch behavior, web-search defaults, discovery, output, downloads, crawl limits, telemetry, and trust gates.
 
 A policy is a frozen Pydantic object in Python and a JSON/YAML document on disk. The same shape works in both places.
 
@@ -19,6 +19,11 @@ atom_reads: false
 trust_tier: strict
 scrape:
   fetcher_type: auto
+search:
+  backend: google,bing,brave
+  region: us-en
+  safesearch: "moderate"
+  max_results: 10
 output:
   formats: [json]
   flat_files: false
@@ -35,6 +40,7 @@ Use policy for:
 - model and provider settings
 - cache and trust gates
 - fetcher and page acquisition behavior
+- web-search provider and regional defaults
 - crawl limits and safety controls
 - output shape and debug artifacts
 - download permissions
@@ -55,6 +61,7 @@ Use policy for:
 |---|---|
 | `model` | Provider, model name, temperature, token cap, credential reference. |
 | `scrape` | Replay/discovery behavior for one scrape run. |
+| `search` | Web-search provider, backend, region, safesearch, page, and result limit. |
 | `page` | Generic page acquisition settings shared by scrape and crawl. |
 | `crawl` | Crawl budget, scheduler, safety, escalation, and targets. |
 | `output` | Terminal/file output, debug HTML, logs, flat files. |
@@ -71,6 +78,7 @@ uvx yosoi policy validate .yosoi/policy.yaml
 uvx yosoi policy inspect .yosoi/policy.yaml --format yaml
 uvx yosoi policy effective --format yaml
 uvx yosoi scrape https://example.com --policy .yosoi/policy/20-page.yaml
+uvx yosoi search "cascading labs yosoi" --policy .yosoi/policy/search.yaml
 ```
 
 Start with [Policy Files](/policy/files/) and [Layering & Precedence](/policy/layering/), then use the section reference pages for individual options.

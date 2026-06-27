@@ -41,7 +41,7 @@ description: Function reference for yosoi v0.0.2a19
 
 `global_id(value: str, name: str) -> SelectorEntry`
 
-## `js` <a href="https://github.com/CascadingLabs/Yosoi/blob/a0ea34303d9c9841ea60a2b7a3f427003d55fac0/yosoi/types/field.py#L12" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+## `js` <a href="https://github.com/CascadingLabs/Yosoi/blob/84da8d87a4c06cdf981823dc69e8835159fd1b78/yosoi/types/field.py#L12" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
 `js(script: str | None = None, description: str | None = None, kwargs: Any = {}) -> Any`
 
@@ -77,7 +77,7 @@ Required when ``script`` is ``None``.
 
 `jsonld(value: str) -> SelectorEntry`
 
-## `load_urls_from_file` <a href="https://github.com/CascadingLabs/Yosoi/blob/a0ea34303d9c9841ea60a2b7a3f427003d55fac0/yosoi/utils/urls.py#L139" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+## `load_urls_from_file` <a href="https://github.com/CascadingLabs/Yosoi/blob/84da8d87a4c06cdf981823dc69e8835159fd1b78/yosoi/utils/urls.py#L139" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
 `load_urls_from_file(filepath: str) -> list[str]`
 
@@ -93,6 +93,10 @@ Load URLs from a file (JSON, plain text, CSV, Excel, Parquet, or Markdown).
 - `FileNotFoundError` — If file does not exist.
 - `ValueError` — If file format requires unavailable dependencies.
 
+## `map`
+
+`map(url: str, max_sitemaps: int = ..., max_urls: int = ..., max_subdomains: int = ..., subfinder_bin: str = ..., subfinder_timeout: int = ..., include_robots: bool = ..., include_default_sitemaps: bool = ..., include_subdomains: bool = ..., discover_subdomains: bool = ...) -> MapResult`
+
 ## `opencode`
 
 `opencode(model_name: str = ..., kwargs: Any = {}) -> ModelPolicy`
@@ -105,7 +109,7 @@ Load URLs from a file (JSON, plain text, CSV, Excel, Parquet, or Markdown).
 
 `regex(value: str) -> SelectorEntry`
 
-## `register_coercion` <a href="https://github.com/CascadingLabs/Yosoi/blob/a0ea34303d9c9841ea60a2b7a3f427003d55fac0/yosoi/types/registry.py#L78" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+## `register_coercion` <a href="https://github.com/CascadingLabs/Yosoi/blob/84da8d87a4c06cdf981823dc69e8835159fd1b78/yosoi/types/registry.py#L78" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
 `register_coercion(type_name: str, description: str = '', semantic: SemanticRule | None = None, config_defaults: Any = {}) -> Callable[[Callable[..., CoercedValue]], Callable[..., Any]]`
 
@@ -138,7 +142,7 @@ Example::
     # PhoneNumber is now a Field factory:
     # PhoneNumber(country_code='+44') -> Field(json_schema_extra={...})
 
-## `resolve_contract` <a href="https://github.com/CascadingLabs/Yosoi/blob/a0ea34303d9c9841ea60a2b7a3f427003d55fac0/yosoi/utils/contracts.py#L134" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+## `resolve_contract` <a href="https://github.com/CascadingLabs/Yosoi/blob/84da8d87a4c06cdf981823dc69e8835159fd1b78/yosoi/utils/contracts.py#L134" target="_blank" rel="noopener noreferrer" title="View source on GitHub"><svg aria-hidden="true" height="14" viewBox="0 0 16 16" version="1.1" width="14" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-2px;display:inline-block"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
 
 `resolve_contract(name: str | dict[str, Any] | ContractSpec) -> type[Contract]`
 
@@ -150,9 +154,8 @@ performed — those are CLI-only DX features in ``SchemaParamType``.
 Resolution order:
 1. ContractSpec / dict → rehydrate via ``ContractSpec.to_contract()``
 2. Exact match in BUILTIN_SCHEMAS
-3. Case-insensitive match in BUILTIN_SCHEMAS
-4. Exact / case-insensitive match in _CONTRACT_REGISTRY (custom schemas)
-5. Dynamic import via ``path:ClassName``
+3. Exact match in _CONTRACT_REGISTRY (custom schemas)
+4. Dynamic import via ``path:ClassName``
 **Args:**
 
 - `name` `str | dict[str, Any] | ContractSpec` — Contract name, ``path:ClassName`` string, inline ContractSpec, or dict.
@@ -173,15 +176,19 @@ Resolution order:
 
 ## `scrape`
 
-`scrape(url: str | Sequence[str], contract: type[Contract] | str | Sequence[type[Contract] | str], model: _YosoiConfig | _LLMConfig | ModelPolicy | str | None = ..., kwargs: Any = {}) -> list[dict[str, Any]] | dict[str, list[dict[str, Any]]] | dict[str, dict[str, list[dict[str, Any]]]]`
+`scrape(url: str | Sequence[str], contract: type[Contract] | str | Sequence[type[Contract] | str], model: _YosoiConfig | _LLMConfig | ModelPolicy | str | None = ..., kwargs: Any = {}) -> ScrapeResult`
 
 ## `scrape_many`
 
-`scrape_many(urls: list[str] | tuple[str, ...], contract: type[Contract] | str, model: _YosoiConfig | _LLMConfig | ModelPolicy | str | None = ..., kwargs: Any = {}) -> dict[str, list[dict[str, Any]]]`
+`scrape_many(urls: list[str] | tuple[str, ...], contract: type[Contract] | str, model: _YosoiConfig | _LLMConfig | ModelPolicy | str | None = ..., kwargs: Any = {}) -> ScrapeResult`
 
 ## `scrape_sync`
 
-`scrape_sync(url: str, contract: type[Contract] | str, model: _YosoiConfig | _LLMConfig | ModelPolicy | str | None = ..., kwargs: Any = {}) -> list[dict[str, Any]]`
+`scrape_sync(url: str, contract: type[Contract] | str, model: _YosoiConfig | _LLMConfig | ModelPolicy | str | None = ..., kwargs: Any = {}) -> ScrapeResult`
+
+## `search`
+
+`search(query: str, kind: str | None = ..., provider: str | None = ..., backend: str | None = ..., region: str | None = ..., safesearch: str | None = ..., timelimit: str | None = ..., max_results: int | None = ..., limit: int | None = ..., page: int | None = ..., policy: Policy | None = ...) -> SearchResult`
 
 ## `show`
 

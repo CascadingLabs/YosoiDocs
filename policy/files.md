@@ -13,6 +13,9 @@ atom_reads: false
 trust_tier: strict
 scrape:
   fetcher_type: auto
+search:
+  backend: google,bing,brave
+  max_results: 10
 output:
   formats: [jsonl]
 ```
@@ -95,6 +98,7 @@ Create a starter policy file with the schema directive already included:
 ```bash
 uvx yosoi policy init --local
 uvx yosoi policy init --global
+uvx yosoi policy init --global --local
 ```
 
 Print the JSON Schema used by editors:
