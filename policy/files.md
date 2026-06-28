@@ -114,3 +114,22 @@ https://cascadinglabs.com/yosoi/schemas/policy.schema.json
 ```
 
 Invalid discovered policy fails fast. Yosoi does not silently skip a malformed YAML or JSON policy file.
+
+## Recipe Trust Policy
+
+Recipe loading uses the `recipe` policy block. Local recipe files are allowed by default; remote recipes are deny-by-default unless you allow exact hosts or GitHub owners. Recipe ids and contract fingerprints are additional allowlists. When set, they must also match.
+
+```yaml
+recipe:
+  allow_local: true
+  allowed_github_owners:
+    - owner
+  allowed_hosts:
+    - raw.githubusercontent.com
+  allowed_recipe_ids:
+    - v1:sha256:...
+  allowed_contract_fingerprints:
+    - contract:v1:sha256:...
+```
+
+See [Recipes](/guides/recipes/) for CLI and API examples.

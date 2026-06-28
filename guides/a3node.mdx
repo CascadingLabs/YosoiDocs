@@ -1,31 +1,29 @@
 ---
 title: A3Node
-description: Cache and replay DOMLoader page-stability recipes for repeat browser fetches.
+description: Cache and replay scoped DOMLoader page-stability recipes for repeat browser fetches.
 faqs:
   - q: Is A3Node enabled by default?
     a: >-
-      No. It is experimental and opt-in through experimental_a3node=True on the
-      browser fetcher.
+      No. It is experimental and opt-in through experimental_a3node=True or the
+      CLI --a3node flag. Recipe replay also enables it when the recipe carries A3Node actions.
   - q: What does A3Node store?
     a: >-
-      It stores the ordered DOMLoader actions that made a domain stable: load-more
-      clicks, pagination, infinite scroll, and settle timing. Empty recipes are stored
-      too, meaning the domain needed no action.
+      It stores scoped browser actions that made a page stable, keyed by URL shape,
+      replay intent, and browser/profile fingerprint. It can also learn small reusable
+      fragments for common blockers such as cookie banners.
   - q: Does A3Node replay non-empty recipes?
     a: >-
-      Yes. Current main replays stored acts through DOMLoader.replay and falls back to
-      a fresh DOMLoader probe if replay does not produce enough content.
-  - q: Is this the same as MCP DiscoveryLesson replay?
+      Yes. It replays stored concrete targets when present, skips stale targets, and
+      falls back to normal DOMLoader probing when replay is insufficient.
+  - q: Is this the same as a portable Yosoi recipe?
     a: >-
-      No. A3Node recipes stabilize pages during fetch. DiscoveryLesson and ReplayPlan
-      are MCP discovery artifacts and should stay separate.
-  - q: When should I delete an A3Node recipe?
-    a: >-
-      Delete it when a site redesigns, replay falls back repeatedly, or you want
-      DOMLoader to rediscover the stability actions from scratch.
+      No. A3Node stabilizes browser fetches. Portable Yosoi recipes package contracts,
+      selectors, optional A3Node actions, and validation evidence for sharing.
 references:
   - title: DOMLoader
     url: https://cascadinglabs.com/guides/dom-loader/
+  - title: Recipes
+    url: https://cascadinglabs.com/guides/recipes/
   - title: VoidCrawl
     url: https://cascadinglabs.com/voidcrawl/
 ---
@@ -36,144 +34,126 @@ import { Badge } from '@astrojs/starlight/components';
 
 `DOMLoader` drives a browser page to a stable state before Yosoi captures HTML. It clears common blockers, clicks content triggers, scrolls when needed, and waits for the DOM to settle.
 
-`A3Node` caches that work. After a successful probe, Yosoi stores the page-stability recipe for the domain. On the next browser fetch, it replays the recipe first and avoids the full behavior-tree search when replay works.
+`A3Node` caches that work. On later browser fetches, Yosoi can replay the stored actions before HTML capture and avoid the full behavior-tree search when replay works.
 
-## What Gets Stored
+## Enable A3Node
 
-An A3Node file stores the domain, an ordered list of acts, replay counters, and timestamps.
+CLI:
 
-```json
-{
-  "format": 2,
-  "domain": "shop.example.com",
-  "acts": [
-    {
-      "kind": "load_more",
-      "cycles": 7,
-      "target": { "type": "role", "value": "button", "name": "Load more", "nth": 0 }
-    }
-  ],
-  "discovered_at": "2026-05-23T14:00:00Z",
-  "replay_count": 4,
-  "last_replayed_at": "2026-05-23T18:00:00Z"
-}
+```bash
+uvx yosoi fetch https://example.com --a3node
+uvx yosoi scrape https://example.com/products/sku-1 --contract @Product --a3node
 ```
 
-An empty `acts` list is valid. It means the domain was probed and needed no DOM actions. Yosoi stores that result so the next run can skip the probe and capture the page after its settle window.
-
-## Storage
-
-Recipes live under `.yosoi/a3nodes/`.
-
-```text
-.yosoi/
-  a3nodes/
-    a3node_shop_example_com.json
-```
-
-Treat this as local operational state. It is useful to share inside a controlled scraping workflow, but it is not a public contract format.
-
-## Enabling A3Node
-
-A3Node is opt-in.
+Python:
 
 ```python
 from yosoi.core.fetcher import create_fetcher
 
-async with create_fetcher("waterfall", experimental_a3node=True) as fetcher:
-    result = await fetcher.fetch("https://shop.example.com/catalog")
+async with create_fetcher('waterfall', experimental_a3node=True) as fetcher:
+    result = await fetcher.fetch('https://shop.example.com/catalog')
 ```
 
-You can also enable it on browser fetchers directly:
+Recipe replay also enables A3Node automatically when the recipe carries `a3nodes`.
 
-```python
-from yosoi.core.fetcher.waterfall import JSFetcher
+## Scoped Replay
 
-async with JSFetcher(experimental_a3node=True) as fetcher:
-    result = await fetcher.fetch("https://shop.example.com/catalog")
-```
+A3Node storage is no longer broad domain-only state. New scope keys include:
 
-Without `experimental_a3node=True`, browser fetchers run a fresh `DOMLoader` probe.
+- domain;
+- normalized route path;
+- query-key shape, excluding values;
+- replay intent, such as fetch or scrape/action/download shape;
+- browser/profile fingerprint, including tier, headless/headful state, identity id, locale, timezone, geo/proxy/user-agent hashes, and accept-language.
+
+This prevents one page template, query surface, or browser identity from overwriting another just because they share a domain.
+
+Storage lives in `.yosoi/yosoi.sqlite3` in the `a3nodes` table. Legacy domain-only rows are treated as legacy scopes instead of broad reusable authority.
+
+## Fragment Bank
+
+Yosoi can also learn small domain-free fragments for common obstacles:
+
+- cookie banners;
+- popups;
+- age gates.
+
+Fragments are keyed by stable target structure, not source domain. Before scoped probing, Yosoi can try the best reusable fragments. A fragment miss is non-authoritative: if the target is absent or stale, it is skipped and normal scoped probing continues.
 
 ## Replay Behavior
 
-On each browser fetch:
+On each browser fetch with A3Node enabled:
 
-1. Yosoi loads the domain recipe from `.yosoi/a3nodes/`.
-2. Empty recipes skip DOM actions and capture content after settling.
-3. Non-empty recipes replay stored acts through `DOMLoader.replay`.
-4. Successful replay increments `replay_count`.
-5. Failed or insufficient replay falls back to a fresh `DOMLoader` probe.
-6. A successful probe saves the new recipe.
+1. Yosoi builds the scoped key before navigation.
+2. It loads the scoped A3Node recipe from SQLite.
+3. It replays stored concrete targets only if they are present.
+4. It skips stale fragment or action targets instead of failing the whole fetch.
+5. It runs the normal DOMLoader probe when replay is absent or insufficient.
+6. Successful scoped acts are saved and reusable fragments are refreshed.
 
-Replay avoids the full trigger search on the hot path when stored targets are available. Older format recipes without stored targets can still fall back to probing for that act kind.
+Replay avoids the full trigger search on the hot path when stored targets are available. It remains advisory: stale replay data cannot authorize serving data by itself.
 
-## Boundary With MCP Lessons
-
-A3Node is fetch-time stabilization. It is not the MCP lesson store.
+## Boundary With Portable Recipes
 
 | System | Job | Storage |
 |---|---|---|
-| A3Node | Get the page into a stable DOM state before HTML capture. | `.yosoi/a3nodes/` |
+| A3Node | Get the page into a stable DOM state before HTML capture. | `.yosoi/yosoi.sqlite3` |
+| Portable recipe | Share contract, selectors, optional A3Node actions, and validation evidence. | `.yosoi/recipes/*.json` or remote JSON |
 | DiscoveryLesson / ReplayPlan | Preserve MCP-learned browser discovery behavior. | `.yosoi/lessons/` |
 
-Keep those boundaries separate. A3Node answers "how do I make this page loaded enough to scrape?" MCP lessons answer "what did the agent learn while discovering this contract?"
+Keep those boundaries separate. A3Node answers "how do I make this page loaded enough to scrape?" Portable recipes answer "what contract and selectors should be replayed?"
 
-## Inspecting Recipes
+## Inspecting State
 
 ```python
-from yosoi.storage.a3node import A3NodeStorage
+from yosoi.storage.a3node import A3NodeScope, A3NodeStorage
 
 storage = A3NodeStorage()
-node = await storage.load("shop.example.com")
+scope = A3NodeScope.for_url(
+    'https://shop.example.com/catalog?page=1',
+    domain='shop.example.com',
+    intent='fetch',
+    browser_fingerprint='default',
+)
+node = await storage.load(scope)
 
 if node:
     print(node.acts)
     print(node.replay_count)
-    print(node.battle_tested)
 ```
 
-To force a fresh probe:
+To force a fresh probe for a scope:
 
 ```python
-await A3NodeStorage().delete("shop.example.com")
+await A3NodeStorage().delete(scope)
 ```
-
-Or remove the local recipe file from `.yosoi/a3nodes/`.
 
 ## FAQs
 
 <details>
 <summary>Is A3Node enabled by default?</summary>
 
-No. It is experimental and opt-in through `experimental_a3node=True`.
+No. It is experimental and opt-in through `experimental_a3node=True` or the CLI `--a3node` flag.
 
 </details>
 
 <details>
 <summary>What does A3Node store?</summary>
 
-It stores the ordered DOMLoader actions that made a domain stable, plus replay counters and timestamps. Empty recipes are stored too.
+It stores the ordered DOMLoader actions that made a scoped page stable, plus replay counters and timestamps. Empty recipes are stored too.
 
 </details>
 
 <details>
 <summary>Does A3Node replay non-empty recipes?</summary>
 
-Yes. Current main replays stored acts through `DOMLoader.replay` and falls back to a fresh probe when replay falls short.
+Yes. It replays stored concrete targets when present, skips stale targets, and falls back to a fresh probe when replay falls short.
 
 </details>
 
 <details>
-<summary>Is this the same as MCP DiscoveryLesson replay?</summary>
+<summary>Is this the same as a portable Yosoi recipe?</summary>
 
-No. A3Node stabilizes pages during fetch. MCP lessons are discovery artifacts.
-
-</details>
-
-<details>
-<summary>When should I delete an A3Node recipe?</summary>
-
-Delete it when a site redesigns, replay falls back repeatedly, or you want DOMLoader to rediscover the page-stability recipe.
+No. A3Node stabilizes browser fetches. Portable recipes package contracts, selectors, optional A3Node actions, and validation evidence for sharing.
 
 </details>

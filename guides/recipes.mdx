@@ -1,0 +1,219 @@
+---
+title: Recipes
+description: Mint, validate, install, run, and publish portable Yosoi recipe artifacts.
+faqs:
+  - q: "What is a Yosoi recipe?"
+    a: "A recipe is flat JSON that packages a contract, verified selectors, optional A3Node actions, and validation evidence for deterministic replay."
+  - q: "Can I install a remote recipe without pinning it?"
+    a: "No. Remote CLI installs and recipe scrapes require --recipe-id v1:sha256:... so the artifact is pinned by content identity."
+  - q: "Does recipe replay call the LLM?"
+    a: "Not by default. Recipe replay seeds selectors and runs with allow_llm disabled unless you pass --allow-llm-with-recipe or allow_llm=True."
+---
+
+Yosoi recipes are portable, reviewable JSON artifacts for replaying a discovered scrape without asking an LLM again. They bundle:
+
+- a `ContractSpec` for the output shape;
+- verified selector snapshots keyed by domain;
+- optional A3Node browser actions for rendered-page stabilization;
+- validation evidence and human metadata.
+
+The posture is fail-fast. A recipe either verifies and has selectors for the target domain and route, or replay fails. It does not silently fall back to heuristic scraping.
+
+## Artifact Identity
+
+Every recipe id has this shape:
+
+```text
+v1:sha256:<digest>
+```
+
+The digest is computed from canonical JSON over the semantic payload. Operational fields such as `instructions`, creation metadata, notes, and volatile selector audit timestamps are excluded so review instructions and provenance can evolve without changing the semantic identity.
+
+Always pin remote recipes with `--recipe-id` or `recipe_id=`.
+
+## Mint
+
+Mint from the local selector cache for a known URL and contract:
+
+```bash
+uvx yosoi recipe mint \
+  --contract @Product \
+  --from-cache https://example.com/products/sku-1 \
+  --domain example.com \
+  --url https://example.com/products/sku-1 \
+  --url-pattern 'https://example.com/products/*' \
+  --out .yosoi/recipes/ \
+  --yes
+```
+
+Mint from explicit JSON inputs:
+
+```bash
+uvx yosoi recipe mint \
+  --contract ./product.contract.json \
+  --selectors ./selectors.json \
+  --a3nodes ./a3nodes.json \
+  --validation ./validation.json \
+  --out ./product.recipe.json
+```
+
+`--selectors` and `--from-cache` are mutually exclusive. If `--out` is a directory, Yosoi writes a recipe file inside it.
+
+## Inspect, Check, Validate, Install
+
+```bash
+uvx yosoi recipe inspect .yosoi/recipes/product.recipe.json
+uvx yosoi recipe check .yosoi/recipes/product.recipe.json --recipe-id v1:sha256:...
+uvx yosoi recipe validate .yosoi/recipes/product.recipe.json \
+  --url https://example.com/products/sku-1 \
+  --write
+uvx yosoi recipe install .yosoi/recipes/product.recipe.json
+```
+
+`recipe validate` replays the recipe against fixture URLs, builds validation evidence, and can write that evidence back to the recipe JSON. Validation evidence participates in the recipe identity, so writing validation changes the `recipe_id`.
+
+Local installs cache the verified canonical recipe under `.yosoi/recipes/` by content id.
+
+## Run
+
+Use a recipe with `scrape`:
+
+```bash
+uvx yosoi scrape https://example.com/products/sku-2 \
+  --recipe .yosoi/recipes/product.recipe.json \
+  --recipe-id v1:sha256:...
+```
+
+Omit the recipe source to choose from local recipes interactively:
+
+```bash
+uvx yosoi scrape https://example.com/products/sku-2 --recipe
+```
+
+Recipe replay disables LLM discovery by default. Pass `--allow-llm-with-recipe` only when you intentionally want discovery or repair after a recipe miss.
+
+## Remote Install
+
+Remote sources can be HTTPS URLs or GitHub refs:
+
+```bash
+uvx yosoi recipe install \
+  'gh:owner/yosoi-recipes/recipes/example.com/product.recipe.json@main' \
+  --recipe-id v1:sha256:...
+
+uvx yosoi recipe install \
+  'https://raw.githubusercontent.com/owner/yosoi-recipes/main/recipes/example.com/product.recipe.json' \
+  --recipe-id v1:sha256:...
+```
+
+The CLI refuses remote recipe installs and remote `--recipe` scrapes without a pinned id.
+
+## Publish
+
+Publishing requires validation evidence by default. Run `yosoi recipe validate ... --write` first, or pass `--allow-unvalidated` intentionally for pilots.
+
+Open a GitHub pull request, the default safer repo mode:
+
+```bash
+uvx yosoi recipe publish ./product.recipe.json -r owner/yosoi-recipes
+```
+
+Commit directly only when you mean to mutate the target branch:
+
+```bash
+uvx yosoi recipe publish ./product.recipe.json -r owner/yosoi-recipes --direct
+```
+
+Publish a secret or unlisted Gist:
+
+```bash
+uvx yosoi recipe publish ./product.recipe.json --gist
+uvx yosoi recipe gist ./product.recipe.json
+```
+
+Secret or unlisted Gists are not private access control. Anyone with the raw URL can read them. GitHub auth is resolved from `GITHUB_TOKEN`, `GH_TOKEN`, or `gh auth token`.
+
+## Python API
+
+```python
+from datetime import datetime, timezone
+import yosoi as ys
+
+
+class Product(ys.Contract):
+    title: str = ys.Title(description='Product title')
+    price: str = ys.Price(description='Displayed price')
+
+
+selectors = ys.recipe.selector_map(
+    'https://example.com/products/sku-1',
+    discovered_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+    title='h1.product-title',
+    price='.price',
+)
+recipe_path = '.yosoi/recipes/product.recipe.json'
+
+recipe = ys.recipe.mint(
+    Product,
+    selectors=selectors,
+    out=recipe_path,
+    source_urls=['https://example.com/products/sku-1'],
+    url_patterns=['https://example.com/products/*'],
+)
+
+validated = await ys.recipe.validate(
+    recipe_path,
+    ['https://example.com/products/sku-1'],
+    write=True,
+)
+loaded = ys.recipe.load(recipe_path, recipe_id=validated.recipe.recipe_id)
+await ys.recipe.run(loaded, 'https://example.com/products/sku-2')
+```
+
+Recipes can also be consumed piecewise:
+
+```python
+RecipeContract = loaded.to_contract()
+selector_map = loaded.selectors_for('www.example.com')
+actions = loaded.a3nodes
+fixture_urls = loaded.fixture_urls()
+```
+
+## Trust Policies
+
+API recipe loading is local-only by default. Remote sources require an explicit trust boundary, and extra allowlists compose with AND semantics.
+
+```python
+trust = ys.recipe.Trust.github('owner').contracts(Product).recipe_ids(recipe.recipe_id)
+remote = ys.recipe.load(
+    'gh:owner/yosoi-recipes/recipes/example.com/product.recipe.json@main',
+    recipe_id=recipe.recipe_id,
+    trust=trust,
+)
+```
+
+Policy files can carry the same allowlist:
+
+```yaml
+recipe:
+  allow_local: true
+  allowed_github_owners:
+    - owner
+  allowed_recipe_ids:
+    - v1:sha256:...
+  allowed_contract_fingerprints:
+    - contract:v1:sha256:...
+```
+
+See [Policy Files](/policy/files/) for policy-file placement and validation.
+
+## Command Reference
+
+- `yosoi recipe mint`: create recipe JSON from a contract plus selectors or cache state.
+- `yosoi recipe inspect`: summarize contract, fields, domains, A3Nodes, and validation status.
+- `yosoi recipe check`: verify schema and deterministic identity.
+- `yosoi recipe validate`: replay fixture URLs, build evidence, and optionally write it back.
+- `yosoi recipe install`: verify and cache local or remote recipes.
+- `yosoi recipe list`: list local `.yosoi/recipes` artifacts.
+- `yosoi recipe publish`: publish to GitHub repo PR, direct commit, or Gist.
+- `yosoi recipe gist`: convenience Gist publish command.
