@@ -59,6 +59,29 @@ uvx yosoi recipe mint \
 
 `--selectors` and `--from-cache` are mutually exclusive. If `--out` is a directory, Yosoi writes a recipe file inside it.
 
+## Compile and Export Contracts
+
+Recipes carry canonical `ContractSpec` JSON. Compile a Python-authored contract before minting or publishing artifacts:
+
+```bash
+uvx yosoi recipe contract compile path/to/contracts.py:Product -o product.contract.json
+uvx yosoi recipe contract compile product.contract.json --json
+```
+
+Export a recipe or `ContractSpec` JSON back to importable Python for review:
+
+```bash
+uvx yosoi recipe contract export product.recipe.json -o product_contract.py
+uvx yosoi recipe contract export product.contract.json
+```
+
+Python equivalents:
+
+```python
+spec = ys.recipe.compile_contract('path/to/contracts.py:Product')
+source = ys.recipe.render_contract_py(spec)
+```
+
 ## Inspect, Check, Validate, Install
 
 ```bash
@@ -70,7 +93,9 @@ uvx yosoi recipe validate .yosoi/recipes/product.recipe.json \
 uvx yosoi recipe install .yosoi/recipes/product.recipe.json
 ```
 
-`recipe validate` replays the recipe against fixture URLs, builds validation evidence, and can write that evidence back to the recipe JSON. Validation evidence participates in the recipe identity, so writing validation changes the `recipe_id`.
+`recipe validate` replays the recipe against fixture URLs, builds validation evidence, and exits non-zero unless replay returns records for every required contract field. It records `missing_fields` in the validation summary on failure.
+
+Validation evidence participates in the recipe identity, so writing validation changes the `recipe_id`. Use `--write` to update the input file, or `--out validated.recipe.json` to write a new validated copy.
 
 Local installs cache the verified canonical recipe under `.yosoi/recipes/` by content id.
 
@@ -110,7 +135,7 @@ The CLI refuses remote recipe installs and remote `--recipe` scrapes without a p
 
 ## Publish
 
-Publishing requires validation evidence by default. Run `yosoi recipe validate ... --write` first, or pass `--allow-unvalidated` intentionally for pilots.
+Publishing requires passed validation evidence by default. Run `yosoi recipe validate ... --write` first, or pass `--allow-unvalidated` intentionally for pilots.
 
 Open a GitHub pull request, the default safer repo mode:
 
@@ -209,10 +234,12 @@ See [Policy Files](/policy/files/) for policy-file placement and validation.
 
 ## Command Reference
 
+- `yosoi recipe contract compile`: compile `path.py:Class` or contract JSON to canonical `ContractSpec` JSON.
+- `yosoi recipe contract export`: render recipe or contract JSON as importable Python.
 - `yosoi recipe mint`: create recipe JSON from a contract plus selectors or cache state.
 - `yosoi recipe inspect`: summarize contract, fields, domains, A3Nodes, and validation status.
 - `yosoi recipe check`: verify schema and deterministic identity.
-- `yosoi recipe validate`: replay fixture URLs, build evidence, and optionally write it back.
+- `yosoi recipe validate`: replay fixture URLs, require all contract fields, build evidence, and optionally write it back.
 - `yosoi recipe install`: verify and cache local or remote recipes.
 - `yosoi recipe list`: list local `.yosoi/recipes` artifacts.
 - `yosoi recipe publish`: publish to GitHub repo PR, direct commit, or Gist.
