@@ -6,8 +6,6 @@ faqs:
     a: "It caps the number of independent URL acquisitions that run in each ordered batch. It defaults to 5 and must be at least 1."
   - q: "Does fetch write selectors or call an LLM?"
     a: "No. Fetch is a page-evidence surface. Contract probes are advisory cache and fingerprint checks only."
-  - q: "What happens when a page is blocked?"
-    a: "The URL has status blocked and the envelope contains an interrupts entry with detection evidence and, when available, same-browser handoff metadata."
 ---
 
 `yosoi fetch` acquires bounded page evidence without selector discovery, cache writes, or structured record extraction. Use it to inspect what Yosoi can see before choosing `crawl`, `discover`, or `scrape`.
@@ -62,10 +60,6 @@ uvx yosoi fetch URL --view bundle --output .yosoi/fetches/example --json
 ```
 
 Use `raw-html` for static-source fidelity, `rendered-html` for JavaScript pages, and `bundle` when artifacts need to be retained for review.
-
-## Blocked pages
-
-A bot wall or captcha is represented by `status: "blocked"` on the URL unit. The envelope `interrupts` list includes detection evidence and, for attached browsers when available, same-browser handoff metadata. Treat this as a request for human resolution or a policy/profile change. Do not treat it as acquired content.
 
 ## Python API
 
