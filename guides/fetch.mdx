@@ -1,0 +1,76 @@
+---
+title: Fetch Page Evidence
+description: Acquire bounded page evidence from one or many URLs without selector discovery or scraping.
+faqs:
+  - q: "What does --concurrency control?"
+    a: "It caps the number of independent URL acquisitions that run in each ordered batch. It defaults to 5 and must be at least 1."
+  - q: "Does fetch write selectors or call an LLM?"
+    a: "No. Fetch is a page-evidence surface. Contract probes are advisory cache and fingerprint checks only."
+---
+
+`yosoi fetch` acquires bounded page evidence without selector discovery, cache writes, or structured record extraction. Use it to inspect what Yosoi can see before choosing `crawl`, `discover`, or `scrape`.
+
+This guide covers the concurrent fetch release tracked in [Yosoi PR #105](https://github.com/CascadingLabs/Yosoi/pull/105).
+
+## Fetch one page
+
+```bash
+uvx yosoi fetch https://example.com --view text --chars 12000 --json
+```
+
+The default text view is bounded for safe agent and LLM use. Check `truncated` and `next_page` before requesting another page.
+
+## Fetch multiple pages
+
+Pass URLs directly, repeat `--url`, or read a file with `--file`. `--concurrency` defaults to `5` and limits independent acquisitions in each ordered batch.
+
+```bash
+uvx yosoi fetch \
+  https://example.com \
+  https://example.org \
+  --concurrency 5 \
+  --view metadata \
+  --json
+
+uvx yosoi fetch --file urls.txt --concurrency 10 --view text --json
+```
+
+| Option | Default | Behavior |
+| --- | --- | --- |
+| `--concurrency N` | `5` | Run at most `N` URL acquisitions in an ordered batch. `N` must be an integer `>= 1`. |
+| `--url URL` | none | Repeat to add URLs without positional arguments. |
+| `--file PATH` | none | Read URLs from a file, then apply the same concurrency limit. |
+| `--limit N` | none | Trim the combined positional, `--url`, and file URL list before acquisition. |
+
+Results stay in input order. A failed or blocked URL is returned in its unit result and does not prevent the remaining URLs from running. Keep the default for browser-heavy or unfamiliar targets. Raising the limit increases target-site load and browser resource use.
+
+`--concurrency` does not change the per-page `--page-size` or `--chars` bound, and it does not turn `fetch` into a crawler.
+
+## Choose evidence
+
+```bash
+# Static HTTP source
+uvx yosoi fetch URL --view raw-html --chars 20000 --json
+
+# Browser-rendered DOM
+uvx yosoi fetch URL --view rendered-html --chars 20000 --json
+
+# Reproducible local artifacts
+uvx yosoi fetch URL --view bundle --output .yosoi/fetches/example --json
+```
+
+Use `raw-html` for static-source fidelity, `rendered-html` for JavaScript pages, and `bundle` when artifacts need to be retained for review.
+
+## Python API
+
+```python
+import yosoi as ys
+
+result = await ys.fetch(
+    ["https://example.com", "https://example.org"],
+    view="metadata",
+    max_concurrency=5,
+)
+```
+
+For browser-tier selection, see [Fetchers](/guides/fetchers/). For agent installation and the Pi dashboard, see [Agent Workflows](/guides/agent-workflows/).

@@ -8,7 +8,8 @@ The current public surface is operation-first. Python helpers and CLI commands c
 | Operation | Python helper | Request | Result | CLI |
 |---|---|---|---|---|
 | Scrape URLs with contracts | `ys.scrape(...)` | `ys.ScrapeRequest` | `ys.ScrapeResult` | `yosoi scrape` |
-| Search the web for source URLs | `ys.search(...)` | `ys.SearchRequest` | `ys.SearchResult` | `yosoi search` |
+| Fetch bounded page evidence | `ys.fetch(...)` | `ys.FetchRequest` | `ys.FetchResult` | `yosoi fetch` |
+| Search the web for source URLs | `ys.search(...)` | `ys.SearchRequest` | `ys.SearchResult` / `ys.SearchBatchResult` | `yosoi search` |
 | Crawl seed URLs | `ys.crawl(...)` or `ys.run_crawl(...)` | `ys.CrawlRequest` | `ys.CrawlResult` or `CrawlRunSummary` | `yosoi crawl` |
 | Map sitemap URLs or subdomains | `ys.map(...)` | `ys.MapRequest` | `ys.MapResult` | `yosoi map` |
 
@@ -43,9 +44,37 @@ uvx yosoi scrape https://qscrape.dev/l1/news/articles/ \
 
 Use `--request request.json` when an agent or another service already produced a `ScrapeRequest` JSON document. Use `--dump-request` to inspect what the CLI will execute.
 
+## Fetch
+
+`ys.fetch(...)` acquires bounded page evidence without selector discovery or structured extraction. It accepts one URL or a sequence; `max_concurrency` limits independent URL acquisitions in each ordered batch.
+
+```python
+import yosoi as ys
+
+result = await ys.fetch(
+    ['https://example.com', 'https://example.org'],
+    view='metadata',
+    max_concurrency=5,
+)
+
+for unit in result.results:
+    print(unit.url, unit.status, unit.status_code)
+```
+
+CLI equivalent:
+
+```bash
+uvx yosoi fetch https://example.com https://example.org \
+  --concurrency 5 \
+  --view metadata \
+  --json
+```
+
+See [Fetch Page Evidence](/guides/fetch/) for views, artifacts, batch controls, and failure semantics.
+
 ## Search
 
-`ys.search(...)` wraps DDGS search and normalizes provider rows into ranked hits plus a URL list. Policy can provide durable defaults for backend, region, safesearch, page, time limit, and result count.
+`ys.search(...)` wraps DDGS search and normalizes provider rows into ranked hits plus a URL list. Pass a sequence of queries to run bounded concurrent searches; results remain in query order and individual failures are retained as unit results. Policy can provide durable defaults for backend, region, safesearch, page, time limit, and result count.
 
 ```python
 import yosoi as ys
@@ -67,6 +96,13 @@ uvx yosoi search "Cascading Labs Yosoi selector discovery" \
   --limit 5 \
   --backend google,bing,brave \
   --json
+```
+
+For a query batch, use repeated `--query` options or `--file` (one query per line). The default concurrency is 5.
+
+```bash
+uvx yosoi search --query "Yosoi scraping" --query "Yosoi selectors" \
+  --concurrency 2 --json
 ```
 
 ## Crawl
