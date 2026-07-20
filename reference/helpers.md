@@ -1,9 +1,9 @@
 ---
 title: Provider Helpers
-description: Provider helper reference for yosoi v0.0.3a23
+description: Provider helper reference for yosoi v0.0.3a24
 ---
 
-> Generated from yosoi `v0.0.3a23`. Only symbols in `__all__` are listed.
+> Generated from yosoi `v0.0.3a24`. Only symbols in `__all__` are listed.
 
 ## `alibaba`
 
