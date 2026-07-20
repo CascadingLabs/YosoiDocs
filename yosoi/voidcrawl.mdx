@@ -1,74 +1,99 @@
 ---
-title: VoidCrawl
-description: Rust-native CDP browser automation for Python via PyO3.
+title: VoidCrawl Integration
+description: Current Yosoi browser acquisition behavior and the pinned VoidCrawl 0.3.8.2 pool API.
 faqs:
-  - q: "Why does Yosoi use VoidCrawl instead of Playwright or Selenium?"
-    a: "VoidCrawl is Apache-2.0 licensed and written in Rust via PyO3, so it avoids the Node.js subprocess overhead of Playwright and the WebDriver latency of Selenium. It also shares a single Tokio runtime across tabs for near-zero overhead reuse."
-  - q: "Do I need VoidCrawl to use Yosoi?"
-    a: "Only when your target pages require JavaScript rendering. For static HTML pages, Yosoi can work with a simple HTTP response. VoidCrawl is needed when the page content is rendered client-side."
-  - q: "What is the Chrome DevTools Protocol?"
-    a: "CDP is the low-level protocol that Chrome exposes for programmatic control -- navigating pages, executing JavaScript, capturing screenshots, and intercepting network requests. VoidCrawl speaks CDP natively from Rust."
-  - q: "Can VoidCrawl run in Docker?"
-    a: "Yes. VoidCrawl has first-class support for both headless and headful Docker containers, including VNC for visual debugging."
+  - q: Which VoidCrawl version does Yosoi use?
+    a: Yosoi v0.0.3a23 pins voidcrawl 0.3.8.2.
+  - q: Which Yosoi fetchers launch VoidCrawl?
+    a: headless and headful use it directly; auto and waterfall escalate to it when rendering is needed; simple never launches a browser.
+  - q: Does deterministic extractor execution launch a browser?
+    a: No. Extractor fields consume the already acquired page evidence and preserve Yosoi's acquire-once boundary.
+  - q: Are captured endpoint queries fingerprinted?
+    a: No. VoidCrawl removes query strings, fragments, user information, and secret-like path segments before Yosoi receives endpoint evidence.
 ---
 
-import JsonLd from '../../../src/components/JsonLd.astro';
+
+Yosoi uses [VoidCrawl](https://github.com/CascadingLabs/VoidCrawl) for every rendered-browser path. There is no Playwright, Selenium, or Puppeteer backend. Yosoi currently pins `voidcrawl==0.3.8.2`; the matching upstream documentation is at [cascadinglabs.com/voidcrawl](https://cascadinglabs.com/voidcrawl/).
+
+## Installation
+
+Installing Yosoi installs the pinned VoidCrawl wheel, so Rust is not required:
+
+```bash
+uv add yosoi
+```
+
+A source build is needed only when developing VoidCrawl itself. Chrome or Chromium must be available when Yosoi launches a local browser. A remote/Docker Chrome pool can instead be supplied through `CHROME_WS_URLS` or Yosoi's `chrome_ws_urls` fetcher option.
+
+## Yosoi fetchers
+
+Use `create_fetcher` with one of the documented fetcher names:
+
+```python
+from yosoi.core.fetcher import create_fetcher
 
 
-**VoidCrawl** is a Rust-native Chrome DevTools Protocol [△](#ref-1) (CDP) client exposed to Python via PyO3 [○](#ref-2). It replaces Playwright [◑](#ref-3) and Selenium [◇](#ref-4) with a permissively-licensed (Apache-2.0) stack for rendering JavaScript-heavy pages, controlling browsers, and automating web interactions.
+async def fetch_rendered():
+    fetcher = create_fetcher('headless', no_sandbox=True)
+    async with fetcher:
+        result = await fetcher.fetch('https://example.com')
+        print(result.html)
+```
 
-Built on [chromiumoxide](https://github.com/mattsse/chromiumoxide) with a shared Tokio [★](#ref-5) runtime, VoidCrawl gives you async-first browser automation with near-zero overhead tab reuse.
+- `headless` and `headful` use VoidCrawl directly.
+- `auto` and `waterfall` begin with simple HTTP acquisition and escalate to VoidCrawl when rendering is needed.
+- `simple` never launches a browser.
 
-## How Yosoi Uses VoidCrawl
+Yosoi owns the fetcher lifecycle. Callers should enter it as an async context manager rather than constructing or closing VoidCrawl pools behind the fetcher's back.
 
-Yosoi uses VoidCrawl as its browser automation backend. When a page requires JavaScript rendering before selector discovery can begin, VoidCrawl handles the headless browsing -- launching tabs, waiting for content, and returning the fully rendered DOM for Yosoi to analyse.
+## Direct VoidCrawl pool API
 
-## Key Features
+When using VoidCrawl independently of Yosoi, use the current `BrowserPool` API:
 
-- **Rust-native performance** -- CDP commands run in a compiled Tokio runtime, not a Node.js subprocess.
-- **Async-first** -- Every API is `async`/`await` from the ground up.
-- **Browser pool** -- Reuse tabs across tasks with near-zero overhead.
-- **Built-in actions** -- Click, type, scroll, screenshot, and evaluate JavaScript without extra dependencies.
-- **Docker-ready** -- First-class support for headless and headful containers.
+```python
+from voidcrawl import BrowserPool, PoolConfig
 
-## FAQs
 
-<details>
-<summary>Why does Yosoi use VoidCrawl instead of Playwright or Selenium?</summary>
+async def fetch_directly():
+    async with BrowserPool(PoolConfig()) as pool:
+        async with pool.acquire() as tab:
+            response = await tab.goto(
+                'https://example.com',
+                capture_endpoints=True,
+            )
+            print(response.html)
+            print(response.url, response.status_code)
+            print(response.endpoints)
+```
 
-VoidCrawl is Apache-2.0 licensed and written in Rust via PyO3, so it avoids the Node.js subprocess overhead of Playwright and the WebDriver latency of Selenium. It also shares a single Tokio runtime across tabs for near-zero overhead reuse.
+`pool.acquire()` is an async context manager and is not awaited separately. `goto()` performs navigation plus network-idle waiting and returns a `PageResponse`.
 
-</details>
+## Evidence boundary
 
-<details>
-<summary>Do I need VoidCrawl to use Yosoi?</summary>
+Yosoi's VoidCrawl wrapper requests `capture_endpoints=True` when the installed API supports it. It consumes:
 
-Only when your target pages require JavaScript rendering. For static HTML pages, Yosoi can work with a simple HTTP response. VoidCrawl is needed when the page content is rendered client-side.
+- response headers for the lightweight network fingerprint layer;
+- sanitized `PageResponse.endpoints` for XHR/fetch structure;
+- rendered DOM captured from the live tab;
+- browser-computed accessibility-tree evidence;
+- pre-fetched runtime values, action outputs, and downloads when explicitly configured.
 
-</details>
+VoidCrawl endpoint capture is opt-in and returns sorted, deduplicated `scheme://host/path` values with query strings, fragments, and user information removed at the source. Yosoi carries that already-sanitized evidence into fingerprints; it does not place extracted field values into fingerprints.
 
-<details>
-<summary>What is the Chrome DevTools Protocol?</summary>
+## Profiles, identity, and isolation
 
-CDP is the low-level protocol that Chrome exposes for programmatic control -- navigating pages, executing JavaScript, capturing screenshots, and intercepting network requests. VoidCrawl speaks CDP natively from Rust.
+Yosoi maps its browser policy onto `BrowserConfig` and `PoolConfig`, including headless/headful mode, proxy, locale, timezone, user agent, persistent profile directory, remote Chrome endpoints, and the explicit cross-origin DOM opt-in. A persistent `user_data_dir` belongs to one Chrome process and must not be shared across a multi-browser pool.
 
-</details>
+Yosoi's acquire-once rule still applies: browser acquisition happens in the fetcher, then selector and deterministic extractor fields consume the resulting page evidence without starting another browser or request.
 
-<details>
-<summary>Can VoidCrawl run in Docker?</summary>
+## Compatibility checks
 
-Yes. VoidCrawl has first-class support for both headless and headful Docker containers, including VNC for visual debugging.
+The pinned API surface is guarded by `tests/unit/core/fetcher/test_voidcrawl_compat.py`. Browser integration tests under `tests/integration/` require a working Chrome installation and are separate from the default unit suite.
 
-</details>
+Related documentation:
 
-## References
-
-<a id="ref-1"></a>△ **Chrome DevTools Protocol**. Google. *Protocol for instrumenting, inspecting, and debugging Chromium-based browsers.* https://chromedevtools.github.io/devtools-protocol/
-
-<a id="ref-2"></a>○ **PyO3**. PyO3 Project. *Rust bindings for the Python interpreter.* https://pyo3.rs/
-
-<a id="ref-3"></a>◑ **Playwright**. Microsoft. *End-to-end testing and browser automation framework.* https://playwright.dev/
-
-<a id="ref-4"></a>◇ **Selenium**. Selenium Project. *Browser automation for testing and scraping.* https://www.selenium.dev/
-
-<a id="ref-5"></a>★ **Tokio**. Tokio Project. *Asynchronous runtime for Rust.* https://tokio.rs/
+- [VoidCrawl quickstart](https://cascadinglabs.com/voidcrawl/quickstart/)
+- [VoidCrawl browser pools](https://cascadinglabs.com/voidcrawl/guides/browser-pool/)
+- [VoidCrawl cookbook and `PageResponse`](https://cascadinglabs.com/voidcrawl/guides/cookbook/)
+- [Yosoi fingerprinting stack](fingerprinting-stack.md)
+- [Yosoi A3Node replay](a3node-replay.md)
