@@ -100,7 +100,7 @@ The module loader:
 - fingerprints the complete bundled function expression;
 - sends bundled source to the browser, never a local path.
 
-This is intentionally a small ESM subset, not a general JavaScript build system.
+This is intentionally a small ESM subset, not a general JavaScript build system. Modules are flattened into one function scope, so private and exported binding names must remain unique across the loaded graph.
 
 ## Handwritten A3Node flows
 
@@ -205,7 +205,7 @@ It opens the public Reviews panel, selects Newest, scrolls a bounded sample, exp
 - `Flow.run` supports the headless and headful VoidCrawl fetchers.
 - Executor scope is page-level only.
 - Flow classes compile a flat A3Node sequence.
-- Local module loading implements a constrained ESM subset and rejects named import and export aliases.
+- Local module loading implements a constrained ESM subset, rejects named import and export aliases, and requires unique binding names across the flattened graph.
 - Flow declarations do not automatically create or install portable recipes.
 - The Google Maps Flow omits slower per-review Share-dialog URL enrichment.
 
