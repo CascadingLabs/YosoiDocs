@@ -93,6 +93,26 @@ On each browser fetch with A3Node enabled:
 
 Replay avoids the full trigger search on the hot path when stored targets are available. It remains advisory: stale replay data cannot authorize serving data by itself.
 
+## Handwritten Flows
+
+`ys.Flow` is the experimental manual authoring surface for the same replay model. Class definition order becomes sequence order, each public attribute becomes a stable node ID, and `ys.Expect[...]` supplies the post-action assertion:
+
+```python
+import yosoi as ys
+
+
+class ResultsVisible(ys.State):
+    condition = ys.css('.results')
+
+
+class RevealResults(ys.Flow):
+    open_results: ys.Expect[ResultsVisible] = ys.click(
+        ys.role('tab', name='Results')
+    )
+```
+
+A Flow compiles to `ReplayPlan`. It does not introduce another browser driver or execution path. See [JavaScript Executors and Browser Flows](/guides/executor-js-flow/) for typed outputs, module trees, live execution, and current alpha limits.
+
 ## Boundary With Portable Recipes
 
 | System | Job | Storage |

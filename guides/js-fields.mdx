@@ -27,7 +27,9 @@ faqs:
 
 `ys.js` is for fields that are not present as stable text in the static HTML. It runs JavaScript in the live browser tab and merges the result into the extracted record.
 
-There are two modes:
+For new hand-authored code, `ys.Executor.js(...)` provides a typed namespace, confined local `.js` and `.mjs` module loading, settle conditions, and integration with handwritten A3Node Flows. See [JavaScript Executors and Browser Flows](/guides/executor-js-flow/). `ys.js(...)` remains available and compatible.
+
+There are two `ys.js` modes:
 
 ```python
 # Hand-authored. No LLM.

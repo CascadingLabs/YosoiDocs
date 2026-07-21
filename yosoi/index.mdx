@@ -47,6 +47,8 @@ Most web scraping tools make you choose between cost and reliability. LLM-per-re
 
 Browser-backed fetches can also run `DOMLoader`, replay A3Node stability recipes, surface files through `ys.File`, and pass accessibility-tree hints into discovery before escalating to MCP.
 
+Experimental [`ys.Executor.js` and `ys.Flow`](/guides/executor-js-flow/) APIs let you add typed browser-computed values and deterministic, handwritten A3Node state transitions when a live site needs explicit interaction before extraction.
+
 The public API is now operation-first: `ys.scrape`, `ys.fetch`, `ys.search`, `ys.crawl`, and `ys.map` share canonical request/result models with the CLI. See [Operations API](/yosoi/operations/) for the machine-readable envelopes and CLI equivalents.
 
 <PipelineChart client:visible />

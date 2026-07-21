@@ -1,0 +1,239 @@
+---
+title: JavaScript Executors and Browser Flows
+description: Run typed JavaScript and deterministic A3Node flows against live browser pages.
+faqs:
+  - q: Is this API stable?
+    a: >-
+      No. Executor.js, State, Flow, and Expect are experimental alpha APIs.
+      They are runnable and typed, but their authoring details may change before beta.
+  - q: Does Flow introduce another browser automation runtime?
+    a: >-
+      No. Flow declarations compile to the existing A3Node ReplayPlan model and run
+      through VoidCrawl-backed Yosoi fetchers.
+  - q: How is Executor.js output validated?
+    a: >-
+      The Python annotation on the Contract or Flow field is the output schema.
+      Yosoi validates the browser result against that annotation.
+  - q: Can an executor load local JavaScript modules?
+    a: >-
+      Yes. Executor.js.modules supports a confined subset of static relative named
+      imports and re-exports from .js and .mjs files beneath a declared root.
+---
+
+import { Badge } from '@astrojs/starlight/components';
+
+<Badge text="Experimental alpha" variant="caution" size="small" />
+
+Yosoi has two related primitives for browser-backed extraction:
+
+- `ys.Executor.js(...)` evaluates JavaScript and validates the result against a Python annotation.
+- `ys.Flow` declares deterministic browser state transitions before evaluation.
+
+A Flow is not a second automation system. Its class declarations compile to the existing A3Node `ReplayPlan` assess, act, and expect model, then execute through VoidCrawl.
+
+## Typed JavaScript fields
+
+Use `ys.Executor.js(...)` on a Contract when a value exists in live browser state:
+
+```python
+import yosoi as ys
+
+
+class RuntimeSignals(ys.Contract):
+    title: str = ys.Executor.js('document.title')
+    dimensions: dict[str, int] = ys.Executor.js(
+        '(() => ({width: innerWidth, height: innerHeight}))()'
+    )
+```
+
+The annotation is the output schema. Required fields fail validation when execution returns `null`.
+
+Contract executors currently share the batching behavior of [`ys.js`](/guides/js-fields/): a per-field JavaScript exception is isolated as `null`, then normal field validation decides whether the record is valid. Executors inside a Flow use replay `EVAL` actions and propagate JavaScript failures directly.
+
+## Local `.js` and `.mjs` helpers
+
+Larger evaluators can live beside the Python spec:
+
+```text
+my_scraper/
+├── contract.py
+└── _js_helpers/
+    ├── index.mjs
+    └── cards.mjs
+```
+
+```javascript
+// cards.mjs
+export function extractCards({limit}) {
+  return Array.from(document.querySelectorAll('article'))
+    .slice(0, limit)
+    .map((card) => ({title: card.querySelector('h2')?.innerText || ''}));
+}
+```
+
+```javascript
+// index.mjs
+export {extractCards} from './cards.mjs';
+```
+
+```python
+from pathlib import Path
+import yosoi as ys
+
+modules = ys.Executor.js.modules(Path(__file__).with_name('_js_helpers'))
+extract_cards = modules.function('index.mjs', export='extractCards')
+
+
+class Cards(ys.Contract):
+    cards: list[dict[str, str]] = ys.Executor.js(
+        extract_cards,
+        args={'limit': 20},
+    )
+```
+
+The module loader:
+
+- confines every file beneath the declared root;
+- accepts `.js` and `.mjs` files;
+- supports named function exports and static relative named imports and re-exports;
+- rejects path traversal, package imports, default imports, and dynamic imports;
+- fingerprints the complete bundled function expression;
+- sends bundled source to the browser, never a local path.
+
+This is intentionally a small ESM subset, not a general JavaScript build system.
+
+## Handwritten A3Node flows
+
+Use `ys.Flow` when browser state must change before data can be evaluated. A named `ys.State` makes the expected state reusable and keeps the action declaration concise:
+
+```python
+import yosoi as ys
+
+ROW = ys.css('[data-row]')
+
+
+class ItemsTabReady(ys.State):
+    condition = ys.role('tab', name='Items')
+
+
+class ItemsPanelOpen(ys.State):
+    condition = ys.css('[role="menu"]')
+
+
+class CardLimitLoaded(ys.State):
+    condition = ys.count(ROW, at_least=ys.input('limit'))
+
+
+class LoadCards(ys.Flow):
+    panel_ready: ys.Expect[ItemsTabReady] = ys.wait_until(
+        max_attempts=20,
+        interval_ms=250,
+    )
+
+    open_panel: ys.Expect[ItemsPanelOpen] = ys.click(
+        ys.role('tab', name='Items')
+    )
+
+    load_rows: ys.Expect[CardLimitLoaded] = ys.scroll_until(
+        ys.nearest_scroll_parent(ROW),
+        max_scrolls=ys.input('max_scrolls'),
+    )
+
+    cards: list[dict[str, str]] = ys.Executor.js(
+        extract_cards,
+        args={'limit': ys.input('limit')},
+        settle=ys.until.length_at_least(
+            1,
+            timeout=5,
+            poll_interval=0.25,
+        ),
+    )
+```
+
+Run the Flow through a live browser:
+
+```python
+result = await LoadCards.run(
+    'https://example.com/items',
+    inputs={'limit': 20, 'max_scrolls': 10},
+    fetcher_type='headless',
+)
+print(result.values['cards'])
+```
+
+### Declaration rules
+
+- Class definition order is sequence order.
+- Each public attribute name becomes the stable A3Node ID.
+- `ys.State` names a reusable selector or condition.
+- `ys.Expect[ThatState]` becomes the node's post-action assertion.
+- An ordinary annotation on `ys.Executor.js` validates captured output.
+- The executor attribute name becomes its `output_field`.
+- Missing inputs, unresolved annotations, failed actions, failed expectations, and settle timeouts fail loudly.
+- `click`, `click_all`, `wait_until`, and `scroll_until` lower to deterministic A3Node actions.
+
+Runtime inputs are valid only on Flow executor fields. Contract executor arguments must be literal because a Contract has no Flow input scope.
+
+## Bounded actions and settle conditions
+
+Flows provide bounded helpers rather than open-ended browser loops:
+
+- `ys.click(target)` clicks one resolved target.
+- `ys.click_all(target, max_clicks=...)` clicks a bounded set of matching targets.
+- `ys.wait_until(max_attempts=..., interval_ms=...)` waits for the annotated expectation.
+- `ys.scroll_until(container, max_scrolls=...)` scrolls until the expectation passes or the bound is reached.
+- `ys.until.non_null(...)` waits for a non-null executor result.
+- `ys.until.length_at_least(...)` waits for a minimum result length.
+
+Selectors can use CSS, XPath, or accessibility roles. Role-name patterns created with `ys.matches(...)` are resolved to exact accessible names before VoidCrawl clicks them.
+
+## Live Google Maps example
+
+The Yosoi repository includes a bounded, anonymous example with a modular JavaScript tree and a handwritten review Flow:
+
+```bash
+uv run python examples/google_maps/api_spec_maps.py --limit 3 --fetcher headless
+```
+
+It opens the public Reviews panel, selects Newest, scrolls a bounded sample, expands visible review text, and returns typed review-card data. It does not sign in, post, edit business data, or use a persistent browser profile.
+
+[Read the Google Maps example source](https://github.com/CascadingLabs/Yosoi/tree/main/examples/google_maps)
+
+## Current alpha limits
+
+- `Flow.run` supports the headless and headful VoidCrawl fetchers.
+- Executor scope is page-level only.
+- Flow classes compile a flat A3Node sequence.
+- Local module loading implements a constrained ESM subset.
+- Flow declarations do not automatically create or install portable recipes.
+- The Google Maps Flow omits slower per-review Share-dialog URL enrichment.
+
+## FAQs
+
+<details>
+<summary>Is this API stable?</summary>
+
+No. `Executor.js`, `State`, `Flow`, and `Expect` are experimental alpha APIs. They are runnable and typed, but their authoring details may change before beta.
+
+</details>
+
+<details>
+<summary>Does Flow introduce another browser automation runtime?</summary>
+
+No. Flow declarations compile to the existing A3Node `ReplayPlan` model and run through VoidCrawl-backed Yosoi fetchers.
+
+</details>
+
+<details>
+<summary>How is Executor.js output validated?</summary>
+
+The Python annotation on the Contract or Flow field is the output schema. Yosoi validates the browser result against that annotation.
+
+</details>
+
+<details>
+<summary>Can an executor load local JavaScript modules?</summary>
+
+Yes. `Executor.js.modules` supports a confined subset of static relative named imports and re-exports from `.js` and `.mjs` files beneath a declared root.
+
+</details>
