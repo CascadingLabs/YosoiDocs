@@ -48,7 +48,7 @@ class RuntimeSignals(ys.Contract):
 
 The annotation is the output schema. Required fields fail validation when execution returns `null`.
 
-Contract executors currently share the batching behavior of [`ys.js`](/guides/js-fields/): a per-field JavaScript exception is isolated as `null`, then normal field validation decides whether the record is valid. Executors inside a Flow use replay `EVAL` actions and propagate JavaScript failures directly.
+Contract executors currently share the batching behavior of [`ys.js`](/guides/js-fields/): a per-field JavaScript exception is isolated as `null`, then normal field validation decides whether the record is valid. Executors inside a Flow use replay `EVAL` actions and propagate JavaScript failures directly. Explicit `settle=` conditions are Flow-only; Contract action fields use the browser fetcher's existing batch-settle policy.
 
 ## Local `.js` and `.mjs` helpers
 
@@ -95,8 +95,8 @@ The module loader:
 
 - confines every file beneath the declared root;
 - accepts `.js` and `.mjs` files;
-- supports named function exports and static relative named imports and re-exports;
-- rejects path traversal, package imports, default imports, and dynamic imports;
+- supports named function exports and static relative named imports and re-exports without binding aliases;
+- rejects path traversal, missing imported exports, binding aliases, package imports, default imports, and dynamic imports;
 - fingerprints the complete bundled function expression;
 - sends bundled source to the browser, never a local path.
 
@@ -167,9 +167,10 @@ print(result.values['cards'])
 - Each public attribute name becomes the stable A3Node ID.
 - `ys.State` names a reusable selector or condition.
 - `ys.Expect[ThatState]` becomes the node's post-action assertion.
-- An ordinary annotation on `ys.Executor.js` validates captured output.
-- The executor attribute name becomes its `output_field`.
+- `ys.Executor.js` fields require either an ordinary output annotation or an `ys.Expect[...]` state.
+- Output annotations validate captured values, and the executor attribute name becomes its `output_field`.
 - Missing inputs, unresolved annotations, failed actions, failed expectations, and settle timeouts fail loudly.
+- Repeated `wait_until` and `scroll_until` actions require an `ys.Expect[...]` state.
 - `click`, `click_all`, `wait_until`, and `scroll_until` lower to deterministic A3Node actions.
 
 Runtime inputs are valid only on Flow executor fields. Contract executor arguments must be literal because a Contract has no Flow input scope.
@@ -204,7 +205,7 @@ It opens the public Reviews panel, selects Newest, scrolls a bounded sample, exp
 - `Flow.run` supports the headless and headful VoidCrawl fetchers.
 - Executor scope is page-level only.
 - Flow classes compile a flat A3Node sequence.
-- Local module loading implements a constrained ESM subset.
+- Local module loading implements a constrained ESM subset and rejects named import and export aliases.
 - Flow declarations do not automatically create or install portable recipes.
 - The Google Maps Flow omits slower per-review Share-dialog URL enrichment.
 
