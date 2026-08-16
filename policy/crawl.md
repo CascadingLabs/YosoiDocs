@@ -45,6 +45,21 @@ crawl:
 | `max_pages_per_host` | `null` | Optional host-level page cap. |
 | `crawl_session_id` | `null` | Checkpoint/session id when persistence is enabled. |
 
+### The `limit` argument
+
+`ys.crawl(seeds, limit=N)` and `yosoi crawl --limit N` are shorthand for the page budget: `limit` lowers the resolved `max_pages` to `N`, so the crawl fetches at most `N` pages.
+
+`limit` also raises a preset's `max_pages_per_host` to `N` when the preset set it lower, so a per-host cap cannot silently answer `limit=40` with 30 pages. Politeness controls (`politeness_delay`, `per_host_concurrency`) are never changed by `limit`.
+
+It is an upper bound, not a target. Depth, host safety rules, fetch failures, and plain reachability can all stop a crawl below `N`.
+
+```python
+summary = await ys.crawl('https://example.com/', limit=25)
+assert summary.pages_fetched <= 25
+```
+
+For anything beyond a page cap -- depth, attempts, per-host allocation, session persistence -- set `budget` on the policy directly.
+
 ## Scheduler
 
 | Field | Default | Description |
