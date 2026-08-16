@@ -42,6 +42,18 @@ Sends HTTP requests with randomized user-agent headers and realistic browser fin
 
 When to use: static sites, news portals, most product catalogues, anything where `Cmd+U` / `Ctrl+U` in a browser shows the content you want to extract.
 
+#### Character encoding
+
+Non-UTF-8 pages are decoded by resolving the charset in HTML5 priority order, not by trusting the HTTP header alone:
+
+1. A byte-order mark, if present.
+2. The `Content-Type: charset=` HTTP header.
+3. The HTML `<meta charset>` declaration (both the HTML5 form and the legacy `http-equiv` form).
+4. UTF-8.
+5. Byte-level detection.
+
+Each candidate is decoded strictly, so a header that lies -- a Shift-JIS page served as `charset=utf-8`, for example -- falls through to the next candidate instead of producing mojibake. A lossy decode is the last resort only, which means replacement characters (`�`) in extracted text now indicate genuinely undecodable bytes rather than a wrong guess.
+
 ### Waterfall Fetcher
 
 Tries three tiers in order and stops at the first that succeeds:
